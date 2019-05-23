@@ -1,0 +1,21 @@
+goog.provide('quid2.module.Data.Fixed.Verb_00000A446174612E4669786564000002453900000101000002453900000000000A446174612E466978656400000245390000');
+goog.require('quid2.std');
+
+quid2.module.Data.Fixed.Verb_00000A446174612E4669786564000002453900000101000002453900000000000A446174612E466978656400000245390000 = (function () {
+var s = quid2.std;
+/*
+data E9  where 
+  E9 :: E9
+*/
+
+function E9() {this.value=[];};
+s.asCons(E9,"E9",0,function (bs) {return new E9();});
+
+
+var E9$={value:[]};
+s.asType0(E9$,"E9$",[E9]);
+
+
+
+return s.defs("Data.Fixed.Verb_00000A446174612E4669786564000002453900000101000002453900000000000A446174612E466978656400000245390000",{},{E9$:E9$,E9:E9});
+})();

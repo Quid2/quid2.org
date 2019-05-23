@@ -1,0 +1,28 @@
+digraph ListBool {
+ordering = out
+
+{rank = same
+node[shape=house]
+bool [label="Bool ≡ False | True"]
+list [label="List Bool ≡ Nil | Cons Bool (List Bool)"]
+}
+
+{rank = same
+b1  [label="|"]
+l1 [label="|",weight=0]
+}
+
+bool -> b1[style=dotted]
+false [label="False",shape=record]
+true  [label="True",shape=record]
+b1 -> false [label= "0"];
+b1 -> true [label= "1"];
+
+list -> l1[style=dotted]
+Nil [shape=record]
+Cons [shape=record,label="Cons | <c0> Bool | <c1> List Bool"]
+l1 -> Nil [label="0"]
+l1 -> Cons [label="1"]
+Cons:c0 -> bool
+Cons:c1 -> list
+}

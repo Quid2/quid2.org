@@ -1,0 +1,15 @@
+.CodeMirror-scroll {  
+  /*height: auto; overflow-x: auto;overflow-y: hidden;
+  overflow-x: auto;overflow-y:auto;*/
+}
+/*
+  //max-height: 800px;
+  //max-width: 1024px;
+  //max-width: 1024px;
+.CodeMirror-scroll {
+  height: auto;
+  max-height: 800px;
+  max-width: 1024px;
+}
+*/
+

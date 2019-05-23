@@ -1,0 +1,20 @@
+goog.provide('quid2.module.Test.Test.API');
+goog.require('quid2.std');
+goog.require('quid2.module.Test.Test.Hash_53b768a9798fdabea7d1d0cb18e72c1bf7ba8d7b00557b7acacd0d01a2404596');
+goog.require('quid2.module.Data.Either.Hash_a29ddfe9385bcb3413d030cda2461b2bb358acce6ada30f656138064fe3edbff');
+goog.require('quid2.module.Finance.Currency.Hash_a582e9f46ebf777e710de19a98db7bdacc6b2636b73694fffaa75885a9720a40');
+goog.require('quid2.module.Finance.Price.Hash_a28daede8becd5b9145341b80bb6a80f5461cf4f6b5d5fcd7bde5bd8ebf5ebff');
+goog.require('quid2.module.Test.Test.Hash_f6719c56f12209fbfdae4c1bb48c70567d50a23bf1b1ecc689a38c580e61044e');
+goog.require('quid2.module.Test.Test.Hash_572da331ac4713b2420404e06bdc78d6dec44e9d5d40d8086da84303791b0f7e');
+goog.require('quid2.module.Test.Test.Hash_4d5573e4dbf837597ebaabd62f5ac3000214602311f4ffe8d7c3b4e3e6cd9b86');
+goog.require('quid2.module.Test.Test.Hash_e22a8529d40694f23b653ce333f0cf319eb9b79a029f60c56b9963892c2b820e');
+goog.require('quid2.module.Test.Test.Hash_a15139190ad1a47c126e3f92eb19668b9454b41bdff458dc4aa45b765b78fb58');
+goog.require('quid2.module.Test.Test.Hash_6fddebac6e95772f98e38edba5154cf62729b6cb6ad3fab5465de8171da0dcd4');
+goog.require('quid2.module.Test.Test2.Hash_9595e53605636745e7bf4f87138f1491c30c628194ee9c62c591855e3c836a65');
+goog.require('quid2.module.Test.Test2.Hash_e55aeceecfd0cb24ade31401b306a8321da6106c5d3107b5afad8ae6f949905c');
+
+quid2.module.Test.Test.API = (function () {
+var s = quid2.std;
+
+return s.defs("Test.Test.API",{},{},[quid2.module.Test.Test.Hash_53b768a9798fdabea7d1d0cb18e72c1bf7ba8d7b00557b7acacd0d01a2404596,quid2.module.Data.Either.Hash_a29ddfe9385bcb3413d030cda2461b2bb358acce6ada30f656138064fe3edbff,quid2.module.Finance.Currency.Hash_a582e9f46ebf777e710de19a98db7bdacc6b2636b73694fffaa75885a9720a40,quid2.module.Finance.Price.Hash_a28daede8becd5b9145341b80bb6a80f5461cf4f6b5d5fcd7bde5bd8ebf5ebff,quid2.module.Test.Test.Hash_f6719c56f12209fbfdae4c1bb48c70567d50a23bf1b1ecc689a38c580e61044e,quid2.module.Test.Test.Hash_572da331ac4713b2420404e06bdc78d6dec44e9d5d40d8086da84303791b0f7e,quid2.module.Test.Test.Hash_4d5573e4dbf837597ebaabd62f5ac3000214602311f4ffe8d7c3b4e3e6cd9b86,quid2.module.Test.Test.Hash_e22a8529d40694f23b653ce333f0cf319eb9b79a029f60c56b9963892c2b820e,quid2.module.Test.Test.Hash_a15139190ad1a47c126e3f92eb19668b9454b41bdff458dc4aa45b765b78fb58,quid2.module.Test.Test.Hash_6fddebac6e95772f98e38edba5154cf62729b6cb6ad3fab5465de8171da0dcd4,quid2.module.Test.Test2.Hash_9595e53605636745e7bf4f87138f1491c30c628194ee9c62c591855e3c836a65,quid2.module.Test.Test2.Hash_e55aeceecfd0cb24ade31401b306a8321da6106c5d3107b5afad8ae6f949905c]);
+})();

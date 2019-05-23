@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+  </script>
+  <style class="text/css">
+  </style>
+</head>
+
+  <script>
+
+    function Foo(i) {
+      this.name = "Foo"+i;
+    };
+
+  var viewers = {
+    Foo: Foo 
+    ,Coo: function (i) {
+      this.name = "Coo"+i;
+    }
+  };
+
+  console.log(new (viewers["Foo"])(44),new (viewers["Coo"])(33));
+
+  </script>
+
+</body>
+</html>
+

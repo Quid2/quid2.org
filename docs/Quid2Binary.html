@@ -1,0 +1,139 @@
+<p>For more information and the most recent version of this specification check <a href="http://quid2.org" class="uri">http://quid2.org</a>.</p>
+<h1 id="quid2-bits">Quid2 Bits</h1>
+<p>Quid2 Binary is an universal data encoding system.</p>
+<p>The universality of an encoding system can be measured along at least three different coordinates: - Expressivity: capacity of faithfully representing data structures. - Space: suitability for information systems of any level of complexity (nanosystems to mainframes). - Time: suitability for long term storage of data.</p>
+<p>Quid2 Binary aims to score highly on the first two? / three dimensions by adopting these design principles:</p>
+<p>Quid2 Bits is a principled, simple and efficient data encoding .</p>
+<p>of values of known data types.</p>
+<p>Design Goals:</p>
+<ul>
+<li><p>Discovered, not invented. Based on the simplest possible abstractions and free from arbitrary and limiting decisions regarding supported data structures or primitive types.</p></li>
+<li><p>Simple: extremely easy to encode and decode. A single encoding/decoding rule. No need to support a range of 'primitive types' unless they are needed by your system.</p></li>
+<li><p>Efficient: space and time efficient. Fast and optimal bit-oriented encoding.</p></li>
+</ul>
+<p>These goals have led to an unusual design that is quite different from most existing data interchange standard: no built-in data structures or primitive types of any kind, bit-encoded rather than byte-encoded and</p>
+<p>Design Non-Goals:</p>
+<p>Different architectures use different word sizes (though currently they are all 2-powers of bytes).</p>
+<p>The bit is the only non-arbitrary unit of information.</p>
+<p>For transmission/storage bits sequences need to be mapped to words but this is external to the system.</p>
+<p>Quid2 binary defines a 1-N mapping between values of any algebraic data type, as defined in Quid2 Model, and binary sequences.</p>
+<h2 id="definitions">Definitions</h2>
+<p>A data type is composed by a name and a constructors tree.</p>
+<p>A constructors tree is a balanced, right-heavy, binary tree whose leaves are constructors and whose internal nodes have a left and right arrow, respectively marked with a <code>0</code> and a <code>1</code> bit.</p>
+<p>A constructor is composed by a name (unique in the data type) and a (possibly empty) sequence of fields each of which points to a data type.</p>
+<p>A value is a</p>
+<h2 id="examples">Examples</h2>
+<div class="figure">
+<embed src="binary-simple.pdf" />
+<p class="caption">Simple types</p>
+</div>
+<p>The figure shows some simple data types, with one (<code>Unit</code>), two (<code>Bool</code>) or five (<code>N</code>) constructors with no fields.</p>
+<p>Note how the 5 constructors of N are split in groups of 2 and 3 (balanced and right-heavy) and the right group of 3 constructors is split in groups of 1 and 2.</p>
+<div class="figure">
+<embed src="binary-listbool.pdf" />
+<p class="caption">A List of Booleans</p>
+</div>
+<p>A more complex example, a list of booleans.</p>
+<p>A <code>List</code> is either a <code>Nil</code> (a 0-length list) or a <code>Cons</code> constructor with two fields, the first pointing to a <code>Bool</code> and the second to the <code>List Bool</code> itself.</p>
+<p>We can also have infinite (codata) data types.</p>
+<div class="figure">
+<embed src="binary-streambool.pdf" />
+<p class="caption">A Stream of Booleans</p>
+</div>
+<table>
+<caption>Boolean values and codes</caption>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">False</td>
+<td align="left">0</td>
+</tr>
+<tr class="even">
+<td align="left">True</td>
+<td align="left">1</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>N values and codes</caption>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">One</td>
+<td align="left">00</td>
+</tr>
+<tr class="even">
+<td align="left">Two</td>
+<td align="left">01</td>
+</tr>
+<tr class="odd">
+<td align="left">Three</td>
+<td align="left">10</td>
+</tr>
+<tr class="even">
+<td align="left">Four</td>
+<td align="left">110</td>
+</tr>
+<tr class="odd">
+<td align="left">Five</td>
+<td align="left">111</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>List values and codes</caption>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Nil</td>
+<td align="left">0</td>
+</tr>
+<tr class="even">
+<td align="left">Cons True Nil</td>
+<td align="left">110</td>
+</tr>
+<tr class="odd">
+<td align="left">Cons False (Cons True Nil)</td>
+<td align="left">10110</td>
+</tr>
+</tbody>
+</table>
+<h2 id="coding-rule">Coding Rule</h2>
+<p>The code of a value is the sequence of bits obtained by joining left-to-right the markers on the path from the data type to the value constructor, followed by the code of the values in the constructors' fields.</p>
+<p>Data types with single constructor have 0-length codes.</p>
+<p>Optimal encoding: takes as little space as possible assuming that all encoded sequences are equi-probable.</p>
+<p>Multiple</p>
+<p>-- Example, see file:///Users/titto/workspace/quid2/tests/tree5.svg data L = A | B | C | D | E</p>
+<h2 id="optimised-encoding-and-decoding">Optimised Encoding and Decoding</h2>
+<p>Conveniently, when the number of constructor is a power of two, this bit encoding is equivalent to the usual unsigned encoding, see file:///Users/titto/workspace/quid2/tests/tree8.svg</p>
+<p>A smart encoder/decoder will just write/read a byte to encode/decode a Word8, no <code>tree traversal</code> necessary. * No assumption on word-size: bit-encoding rather than byte or word-encoding.</p>
+<h1 id="quid2-io">Quid2 IO</h1>
+<p>Quid2 IO defines a data-interchange and data-storage binary format.</p>
+<p>Alas, the real world is a touch place and our beautiful, but naive, bit sequences are not going to survive for long unless</p>
+<h2 id="framing---byte-alignment">Framing - Byte-Alignment</h2>
+<p>The first tough reality is that computing systems are not bit oriented. First of all,</p>
+<p>However, for performance and simplicity reasons, it is useful to byte-align certain types such as large blocks of bytes.</p>
+<p>This can be achieved with a Filler:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- A meaningless sequence of 0 bits terminated with a 1 bit.</span>
+<span class="kw">data</span> <span class="dt">Filler</span> <span class="fu">=</span> <span class="dt">FillerBit</span> <span class="dt">Filler</span> <span class="fu">|</span> <span class="dt">FillerEnd</span>
+
+<span class="co">-- A generic byte/word-aligned type</span>
+<span class="kw">data</span> <span class="dt">Aligned</span> a <span class="fu">=</span> <span class="dt">Aligned</span> a <span class="dt">Filler</span></code></pre></div>
+<p>An intelligent encoder will modify the size of the Filler to byte/word-align the data.</p>
+<p>A smart decoder will take advantage of the fact that data is aligned.</p>
+<p>Naive encoders/decoders that know nothing about Filler, will still work.</p>

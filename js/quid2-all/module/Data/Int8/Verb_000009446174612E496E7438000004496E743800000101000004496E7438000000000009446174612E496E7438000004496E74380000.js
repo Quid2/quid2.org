@@ -1,0 +1,21 @@
+goog.provide('quid2.module.Data.Int8.Verb_000009446174612E496E7438000004496E743800000101000004496E7438000000000009446174612E496E7438000004496E74380000');
+goog.require('quid2.std');
+
+quid2.module.Data.Int8.Verb_000009446174612E496E7438000004496E743800000101000004496E7438000000000009446174612E496E7438000004496E74380000 = (function () {
+var s = quid2.std;
+/*
+data Int8  where 
+  Int8 :: Int8
+*/
+
+function Int8() {this.value=[];};
+s.asCons(Int8,"Int8",0,function (bs) {return new Int8();});
+
+
+var Int8$={value:[]};
+s.asType0(Int8$,"Int8$",[Int8]);
+
+
+
+return s.defs("Data.Int8.Verb_000009446174612E496E7438000004496E743800000101000004496E7438000000000009446174612E496E7438000004496E74380000",{},{Int8$:Int8$,Int8:Int8});
+})();

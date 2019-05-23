@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  
+  <head>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Test</title>
+
+ <style type="text/css">
+  body {margin:0;padding:0;overflow:hidden}
+  div.example {
+    border:5px solid red;    
+    margin:3px;
+    padding:4px;
+    background-color: yellow
+  }
+  </style>
+ <script type="text/javascript" src="../js/closure-library/closure/goog/base.js"></script>
+
+ <script type="text/javascript" src="../js/quid2-deps.js"></script>
+
+ <script type="text/javascript">"use strict";</script>
+
+ <script type="text/javascript">
+    goog.require('$');
+    //goog.require('quid2.Rx');
+    //goog.require('quid2.primitive');
+    //goog.require('quid2.modules');
+    //goog.require('quid2.ui.Main');
+    //goog.require('test.quid2.std');
+    goog.require('test.quid2.protocol');
+ </script>
+
+<script type="text/javascript">
+    $(function() {    
+      //quid2.Rx.test();
+      //quid2.ui.Main.test();
+      //quid2.primitive.test();
+      //quid2.modules.test();
+      //test.quid2.std();
+      test.quid2.protocol();
+    });
+</script>
+
+</head>
+
+<body>
+ <div class="example">Std Test page</div>
+</body>
+</html>

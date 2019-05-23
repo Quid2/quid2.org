@@ -1,0 +1,349 @@
+.quid2-content {overflow:auto !important;}
+
+/*div.quid2-AppModule {
+  //overflow:auto;
+  //height:auto ;
+}*/
+
+.editorError {background: #FF0000 !important;}
+.editorErrorLine {background: #FF8080 !important;}
+.editorActiveLine {background: #e8f2ff !important;}
+
+span.CodeMirror-matchhighlight { background: #e9e9e9 }
+.CodeMirror-focused span.CodeMirror-matchhighlight { background: #e7e4ff; !important }
+
+.quid2-MenuBar ,menu {font-size:0.9em;padding:5pt;}
+
+code {white-space:pre;font-family: monospace}
+
+[display=none] {display:none}
+
+del {color: red;}
+ins {color: green;}
+
+div.versions {height:22pt}
+
+.version {color:blue;border:1px solid;padding:3px;}
+a.version-mine {color: green !important;border:1px solid;padding:3px;}
+
+div.quid2-literate {text-align:justify;}
+
+.userInput {width:100%}
+
+.expr { margin: 0 1em 1em 0;} 
+.expr-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
+.expr-header .ui-icon {float: right;}
+.expr-content { padding: 0.4em; }
+.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
+.ui-sortable-placeholder * { visibility: hidden; }
+
+.ui-widget {
+    font-family: Lucida Grande,Lucida Sans,Arial,sans-serif;
+    font-size: 0.9em;
+}
+
+.quid2-help-tooltip {
+    padding: 4px;
+    border: 1px solid #369;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background: white;     
+};
+
+.help h4 {margin-bottom:0.2em}
+
+h2,h3,h4,h5,h6 {margin-bottom:0.2em}
+
+.ui-button-text {font-size: 1em;}
+
+.ui-tabs-nav {font-size: 0.8em;}
+
+.op {color: blue;}
+
+.login { display: none; color: blue;}
+
+.sideArea {width:33%;min-width:200px}
+.objArea {width:1200px;}
+.msgsArea {width:17%;min-width:100px}
+.footer ,.ui-layout-south {font-size: 0.8em; text-align: center;}
+
+.simplePane {border:1px solid #A6C9E2;padding:0px;margin:0px;}
+.simpleInsidePane {border-bottom:1px solid #A6C9E2;padding:4px;margin:4px;}
+.simplerPane {padding:10px;}
+.leftPane {border-right:1px solid #A6C9E2;}
+.bottomPane {border-top:1px solid #A6C9E2;}
+.jstree {background:white !important;}
+
+.quid2-Status-error, .quid2-Status-warning, .quid2-Status-info , .quid2-Status-working {
+border:3px solid;
+margin:0px;
+padding:5px;
+font-size: 0.8em;
+/*position:absolute;bottom:0;*/
+
+/*height:100%;width:100%;
+vertical-align:middle;*/
+}
+
+.quid2-iframe {height:100%;width:100%;}
+
+.quid2-Status-error {border-color: red;}
+.quid2-Status-warning {border-color: yellow;}
+.quid2-Status-info {border-color: green;}
+.quid2-Status-working {border-color: blue;}
+
+.error, .warning, .info , .working {border:2px solid;margin:3px;padding:3px;font-size: 0.8em}
+
+.error, .warning, .info ,.simplePane {
+-moz-border-radius: 5px;
+-webkit-border-radius: 5px;
+border-radius: 5px;
+}
+
+.quid2-link {
+  color:green !important;
+  cursor:pointer !important;
+}
+/*expr {color:green;cursor:pointer;}*/
+.eval.expr {color: green;}
+.error {border-color: red;}
+.warning {border-color: yellow;}
+.info {border-color: green;}
+.working {border-color: blue;}
+
+.todo ,.wip{color: magenta;}
+.wip {
+  /*text-decoration: underline; */
+  border-bottom: 3px solid red
+}
+
+.evalArea {
+  /*background:#F0F0F0;
+  border:1px solid;
+  padding:3pt;*/
+  margin:3pt; 
+}
+
+div.note {
+  background:#F0F0F0; 
+  border:1px solid;
+}
+.noteNumber {vertical-align:super}
+
+.selected {background:#E0E0E0;}
+
+
+body {
+    font-family: Lucida Grande,Lucida Sans,Arial,sans-serif;
+    /*font-size: 1.1em; 
+    font-family:verdana,arial,tahoma;*/
+    font-size:90%;
+    color:black;
+    background: white;  
+    margin:0; 
+    padding: 0;    
+    overflow:hidden;
+}
+
+ul.topics { 
+  list-style-image:none;
+  list-style-position:outside;
+  list-style-type:none;
+  margin:0; 
+  padding: 0;
+}
+
+ul.subtopics {
+  list-style-image:none;
+  list-style-position:outside;
+  list-style-type:none;
+  margin:0; 
+  padding: 0;
+  margin-left:12px
+}
+
+li.entry {
+  border:1px solid #DDDDDD;
+  /*border-bottom:1px solid #DDDDDD;
+  background: #F0F0F0 none repeat scroll 0% 50%;*/
+  margin: 5px;  
+  overflow: hidden;
+}    
+
+li.interested > span.entryText {
+  /*color:darkgreen;
+  text-decoration: underline; */
+  /*font-weight: bold;*/  
+  background:yellow none repeat scroll 0 0;
+}
+
+li.selected > span.entryText {
+  color:black;
+  text-decoration: none; 
+  background: #00E000 none repeat scroll 0 0;
+}
+
+/*
+li.entry:hover {
+  background:#EEEEEE none repeat scroll 0 0;
+}
+*/
+
+.ui-selecting { background: #FECA40; } 
+
+.ui-selected  { background: #00E000; }
+
+
+.ui-layout-resizer {
+  /**width: 40px !important; **/
+}
+
+.ui-layout-resizer:hover {
+      background: #0000E0 !important; 
+    }
+
+.ui-layout-toggler:hover { /* jquery.layout 'resizer-bars' */ 
+      background: #00E000 !important; 
+    }
+
+img.small { 
+    float: left; 
+    margin-top: 3px; 
+    margin-right: 6px; 
+}
+
+#inOutArea, #web {
+     padding:0px !important;
+     border:0 !important;
+}
+
+#inputArea, #outputArea {
+     padding: 5px !important;
+     border:0 !important;
+}
+
+#inputArea {
+  text-align: center;
+}
+
+#contentTile {
+     border:0 !important;
+}
+
+#content {
+     padding:0px !important;
+     border:0 !important;
+}
+
+/** dragging **/
+
+.dragSource {
+    cursor: move;
+    -moz-user-select: none;
+ }
+
+ .dragDrag {
+     cursor: move;
+     background: silver !important;
+     z-index:1000
+ }
+ 
+.dragTarget {
+    color: yellow !important;
+    z-index:1000;
+ }
+
+.quid2-Tabs {
+    /*border-radius: 5px;
+    border:1px solid #A6C9E2;    
+    */
+    padding:4px;
+}
+ 
+ .goog-tab-bar {
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    background: #5C9CCC;
+    font-weight: bold;
+ }
+
+.goog-rounded-tab-caption {
+  font-size:0.8em;
+  color:#2E6E9E;
+}
+
+.goog-rounded-tab-caption,
+.goog-rounded-tab-inner-edge,
+.goog-rounded-tab-outer-edge {
+  background: #DFEFFC;
+  border-right: 1px solid #C5DBEC;
+}
+
+/* State: Hover */
+.goog-rounded-tab-hover .goog-rounded-tab-caption,
+.goog-rounded-tab-hover .goog-rounded-tab-inner-edge,
+.goog-rounded-tab-hover .goog-rounded-tab-outer-edge {
+  color:#E17009;
+  background: #E5E8E9;
+}
+
+/* State: Selected */
+.goog-rounded-tab-selected .goog-rounded-tab-caption,
+.goog-rounded-tab-selected .goog-rounded-tab-inner-edge,
+.goog-rounded-tab-selected .goog-rounded-tab-outer-edge {
+  color:#E17009;
+  background: #F5F8F9 !important;
+}
+
+ .goog-tab-content {
+     /*min-height:100% !important;
+     height: 100%;
+     overflow:auto;*/
+      /*height:auto;
+      overflow-x: auto;
+      overflow-y: hidden;
+      width:99%;
+      position:absolute;              
+      min-height:99% !important;
+      height:auto;*/      
+      overflow:hidden;
+      margin: 0;
+      padding: 4px;
+      border: 1px solid #369;
+      border-top-left-radius: 0px;
+      border-top-right-radius: 0px;
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+      background: white;     
+    }    
+
+    .goog-splitpane-handle {
+      border: 0px;
+      margin: 0px;
+      background: #ccc;
+      position: absolute;
+    }
+
+    .goog-splitpane-handle-horizontal {
+      cursor: col-resize;
+    }
+
+    .goog-splitpane-handle-vertical {
+      cursor: row-resize;
+    }
+
+    .goog-splitpane-first-container,
+    .goog-splitpane-second-container {
+      /*border:1px solid gray;
+      box-sizing:border-box;
+      -moz-box-sizing:border-box; 
+      -webkit-box-sizing:border-box*/
+      overflow:hidden;
+      /*padding:5px;*/
+      /*border: 1px solid black;
+      overflow: auto;*/
+      position: absolute;
+    }

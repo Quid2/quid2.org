@@ -1,0 +1,291 @@
+.CodeMirror {
+  height: auto;
+}
+
+del {color: red;}
+ins {color: green;}
+
+.version {color: blue;border:1px solid;padding:3px;}
+.version-mine {color: green;border:1px solid;padding:3px;}
+
+p.doc {text-align:justify}
+
+.userInput {width:100%}
+
+.expr { margin: 0 1em 1em 0; }
+.expr-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
+.expr-header .ui-icon { float: right; }
+.expr-content { padding: 0.4em; }
+.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
+.ui-sortable-placeholder * { visibility: hidden; }
+
+.op {color: blue;}
+
+.login { display: none; color: blue;}
+
+.simplePane {border:1px solid #A6C9E2;padding:0px;margin:0px;}
+.simplerPane {padding:10px;}
+
+.error, .warning, .info {border:2px solid;margin:3px;padding:3px;}
+
+.error, .warning, .info ,.simplePane {
+-moz-border-radius: 5px;
+-webkit-border-radius: 5px;
+border-radius: 5px;
+}
+
+.eval {color: green;}
+.error {border-color: red;}
+.warning {border-color: yellow;}
+.info {border-color: green;}
+
+.todo ,.wip{color: magenta;}
+.wip {
+  //text-decoration: underline; 
+  border-bottom: 3px solid red
+}
+
+div.note {
+  background:#F0F0F0; 
+  border:1px solid;
+}
+.noteNumber {vertical-align:super}
+
+.selected {background:#B0B0B0;}
+
+body {
+ font-family:verdana,arial,tahoma;
+ font-size:10pt;
+ background: white;  
+}
+
+ul.topics { 
+  list-style-image:none;
+  list-style-position:outside;
+  list-style-type:none;
+  margin:0; 
+  padding: 0;
+}
+
+ul.subtopics {
+  list-style-image:none;
+  list-style-position:outside;
+  list-style-type:none;
+  margin:0; 
+  padding: 0;
+  margin-left:12px
+}
+
+li.entry {
+  border:1px solid #DDDDDD;
+  //border-bottom:1px solid #DDDDDD;
+  //background: #F0F0F0 none repeat scroll 0% 50%;
+  margin: 5px;  
+  overflow: hidden;
+}    
+
+li.interested > span.entryText {
+  /*color:darkgreen;
+  text-decoration: underline; */
+  /*font-weight: bold;*/  
+  background:yellow none repeat scroll 0 0;
+}
+
+li.selected > span.entryText {
+  color:black;
+  text-decoration: none; 
+  background: #00E000 none repeat scroll 0 0;
+}
+
+/*
+li.entry:hover {
+  background:#EEEEEE none repeat scroll 0 0;
+}
+*/
+
+.ui-selecting { background: #FECA40; } 
+
+.ui-selected  { background: #00E000; }
+
+
+.ui-layout-resizer {
+  /**width: 40px !important; **/
+}
+
+.ui-layout-resizer:hover {
+      background: #0000E0 !important; 
+    }
+
+.ui-layout-toggler:hover { /* jquery.layout 'resizer-bars' */ 
+      background: #00E000 !important; 
+    }
+
+img.small { 
+    float: left; 
+    margin-top: 3px; 
+    margin-right: 6px; 
+}
+
+#inOutArea, #web {
+     padding:0px !important;
+     border:0 !important;
+}
+
+#inputArea, #outputArea {
+     padding: 5px !important;
+     border:0 !important;
+}
+
+#inputArea {
+  text-align: center;
+}
+
+#contentTile {
+     border:0 !important;
+}
+
+#content {
+     padding:0px !important;
+     border:0 !important;
+}
+
+.CodeMirror-line-numbers {
+        width: 2.2em;
+        color: #aaa;
+        background-color: #eee;
+        text-align: right;
+        padding: .4em;
+        margin: 0;
+        font-family: monospace;
+        font-size: 10pt;
+        line-height: 1.1em;
+}
+
+<!-- Google tab pane -->
+
+    .goog-tabpane {
+      background: threedface;
+      padding-left: 1px;
+      position: relative;
+    }
+
+    .goog-tabpane-tabs {
+      list-style: none;
+      margin: 0px;
+      padding: 0px;
+      height: 1ex;
+      position: relative;
+    }
+
+    .goog-tabpane-left .goog-tabpane-tabs {
+      float: left;
+    }
+
+    .goog-tabpane-right .goog-tabpane-tabs {
+      float: right;
+    }
+
+    .goog-tabpane-cont {
+      overflow: auto;
+      background: threedface;
+      border: 1px solid;
+      border-color: threedhighlight threedshadow threedshadow threedhighlight;
+      padding: 2px;
+    }
+
+    .goog-tabpane-tab, .goog-tabpane-tab-selected {
+      display: block;
+      padding: 0px 3ex;
+      background: threedface;
+      border: 1px solid;
+      margin: 0px;
+    }
+
+    .goog-tabpane-top .goog-tabpane-tab,
+    .goog-tabpane-top .goog-tabpane-tab-selected,
+    .goog-tabpane-bottom .goog-tabpane-tab,
+    .goog-tabpane-bottom .goog-tabpane-tab-selected {
+      float: left;
+    }
+
+    .goog-tabpane-top .goog-tabpane-tab,
+    .goog-tabpane-top .goog-tabpane-tab-selected {
+      border-color: threedhighlight threedshadow threedface threedhighlight;
+    }
+
+    .goog-tabpane-bottom .goog-tabpane-tab,
+    .goog-tabpane-bottom .goog-tabpane-tab-selected {
+      border-color: threedface threedshadow threedshadow threedhighlight;
+    }
+
+    .goog-tabpane-left .goog-tabpane-tab,
+    .goog-tabpane-left .goog-tabpane-tab-selected {
+      border-color: threedhighlight threedface threedshadow threedhighlight;
+    }
+
+    .goog-tabpane-right .goog-tabpane-tab,
+    .goog-tabpane-right .goog-tabpane-tab-selected {
+      border-color: threedhighlight threedshadow threedshadow threedface;
+    }
+
+    .goog-tabpane-top .goog-tabpane-tab {
+      margin-top: 3px;
+    }
+
+    .goog-tabpane-tab-selected {
+      font-weight: bold;
+    }
+
+    .goog-tabpane-tab-selected,
+    .goog-tabpane-tab-selected {
+      padding-bottom: 2px;
+      padding-top: 2px;
+    }
+
+    .goog-tabpane-top .goog-tabpane-tab-selected {
+      position: relative;
+      top: 1px;
+    }
+
+    .goog-tabpane-bottom .goog-tabpane-tab-selected {
+      position: relative;
+      top: -1px;
+    }
+
+    .goog-tabpane-left .goog-tabpane-tab-selected {
+      position: relative;
+      left: 1px;
+    }
+
+    .goog-tabpane-right .goog-tabpane-tab-selected {
+      position: relative;
+      left: -1px;
+    }
+
+    .goog-tabpane-tab {
+      margin-top: 0px;
+    }
+
+    .goog-tooltip {       
+      background: infoBackground;      
+      color: infotext;        
+      border: 1px solid black;        
+      padding: 1px;  
+      font: menu;    
+    }      
+    .goog-tooltip2 {  
+      background: #C0C0FF;
+      color: infotext;
+      border: 1px solid infotext;
+      padding: 1px;
+      font: menu;
+      width: 120px;
+    }
+
+
+    .goog-tab-content {
+      margin: 0;
+      border: 1px solid #369;
+      background: #fff;
+      overflow: auto;
+    }

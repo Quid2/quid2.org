@@ -1,0 +1,98 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>	  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>    
+   <script type="application/javascript;version=1.8" src="adt.js"> </script>  
+
+   <script type="application/javascript;version=1.8">
+     Color = Data(function() ({ Red: {}, Green: {}, Blue: {}, Yellow: {} }))
+     Point = Data(function() ({ Pt: { x: Number, y: Number, color: Color } }))
+     console.log(Pt(1, 2, Red).color);
+     console.log(Pt(1, 2, Red).x);
+
+     // Haskell: data List a = Nil | Cons a (List a)
+     List = Data(function(list, a) ({ Nil : {}, Cons: { head: a, tail: list } }))
+     var l2 = Cons(11,Cons(22,Nil));
+     console.log(l2);
+     var counter = List.unfold(function(n, c) n ? c.Cons(n, n - 1) : c.Nil)
+
+     var Nothing = ["Nothing"];
+     var Just = function(v) {return ["Just",v];}
+     function maybe (m,p) {
+       if (m[0] === "Nothing") return p.Nothing;
+       if (m[0] === "Just")    return p.Just(m[1]);
+       throw "Expected Maybe";
+     };
+     var m0 = Just (5);
+     
+     function fromMaybe(dft,mb) {
+     return maybe(mb,{
+       Nothing : dft
+       ,Just   : function (v) {return v;}
+     });
+     };
+     console.log(fromMaybe(0,m0));
+
+     function patt (m,p) {
+       var cons = m[0];
+       if (! (cons in p)) throw "Cannot find " + cons + " in " + p;//BUG: no show
+       
+       var numPars = m.length-1;
+       if (numPars === 0) return p[cons];
+       
+       return p[cons].apply(null,m.slice(1)); 
+     }
+
+     function frMaybe(dft,mb) {
+     return patt(mb,{
+       Nothing : dft
+       ,Just   : function (v) {return v;}
+     });
+     };
+     console.log(frMaybe(11,m0));
+
+
+     /*
+     var N = {Nothing:{}};
+     var J = function(v) {return {J:v}}
+     function mb (m,fs) {
+       if m.Nothing then return f.Nothing;
+       if m.Just the return f.Just (m.Just);
+       throw "Expected Maybe";
+     };
+     var m0 = J 5;
+
+     // case m1 of 
+     // Nothing -> 11
+     // Just v  -> v*2
+     var v1 = maybe(m0,{
+       Nothing : 11
+       ,Just   : function (v) {return v*2}
+     });
+
+     console.log(v1);
+*/
+
+     /*
+     var Nothing = function(p) {return p.Nothing;}
+     function Just(v) {return function(p) {return p.Just(v);}}
+
+     var m1 = Just(Just(5));
+
+     function fromMaybe (dft,maybe) {
+     maybe ({
+     Nothing : dft
+     ,Just : function (v) {return v}
+     });
+     }
+     */
+
+     //console.log(fromMaybe(0,Nothing));
+   </script>
+  </head>
+
+  <body>
+  </body>
+</html>
+
+
+

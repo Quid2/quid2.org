@@ -1,0 +1,23 @@
+goog.provide('quid2.module.Service.Org.Quid2.App.Source.API');
+goog.require('quid2.std');
+goog.require('quid2.module.Service.Org.Quid2.App.Source.Hash_c1c6a2bf9b0379167bb9b3cbd5e6308dc3604bc4c2b37d2a8eb7f117609eb8ff');
+goog.require('quid2.module.Data.Bool.Hash_5d101ff369e98815dcded54163ac4efd6578b24bfed5ef4c8677055babb73152');
+goog.require('quid2.module.Data.Either.Hash_a29ddfe9385bcb3413d030cda2461b2bb358acce6ada30f656138064fe3edbff');
+goog.require('quid2.module.Data.Maybe.Hash_fe1a9ed1fe3015c135b766464e0bcb971d1cd2b1aa733a473dd1055ba4b7eb60');
+goog.require('quid2.module.Data.PatchedString.Hash_dd1364a9fd1fbb6ef3566bd53ab21bea8fd8cf3a2637320c01931c7539d97b2a');
+goog.require('quid2.module.Data.Ref.Hash_380d3344c306e7f70b9cff78b9eebd922dc765caecde389796a59a35f209229f');
+goog.require('quid2.module.Data.String.Patch.Hash_ad09b4eb1c7a9876fcdd4031a75754b84622ecc45eb17f9838703a87d8dacd81');
+goog.require('quid2.module.Language.Quid2.Hash_5be85ea9e525910233327d11ce34d2b5095c16257b497ea9726900782541ac3c');
+goog.require('quid2.module.Language.Quid2.Syntax.Hash_92fe44c07b551e4ff3b4c68da1eaaac15032a0f8d230172958f34a5fbe8e98dd');
+goog.require('quid2.module.Network.Domain.Hash_38fd29d583e084e61f43eb4a899c4f4abf29672b7111406e06c47cc4248b9267');
+goog.require('quid2.module.Service.Org.Quid2.App.Source.Hash_9a20f06b942939dc6a4493ff7d788698f4e1ad201ec5c8abe83ffc870ff0ec92');
+goog.require('quid2.module.Service.Org.Quid2.Language.Quid2.Hash_4e46ba8143b04ea926075d34899951fe862ef703c1da0dbeafd496500e2c9296');
+goog.require('quid2.module.Service.Org.Quid2.Language.Quid2.Hash_ae149a107b5fd4bec1362367a6bb6688b6786f1afe1ffe79d1cdd44d481be279');
+goog.require('quid2.module.Service.Org.Quid2.Language.Quid2.Hash_cd57f4f3d8b570a0f9553dec1ece2469a399336581f6927b5386936b1a002883');
+goog.require('quid2.module.Service.Org.Quid2.Language.Quid2.Hash_ddcd1b09d236d5fe6e50de378249a657906530edef93bab7ac534e61c8d9182d');
+
+quid2.module.Service.Org.Quid2.App.Source.API = (function () {
+var s = quid2.std;
+
+return s.defs("Service.Org.Quid2.App.Source.API",{},{},[quid2.module.Service.Org.Quid2.App.Source.Hash_c1c6a2bf9b0379167bb9b3cbd5e6308dc3604bc4c2b37d2a8eb7f117609eb8ff,quid2.module.Data.Bool.Hash_5d101ff369e98815dcded54163ac4efd6578b24bfed5ef4c8677055babb73152,quid2.module.Data.Either.Hash_a29ddfe9385bcb3413d030cda2461b2bb358acce6ada30f656138064fe3edbff,quid2.module.Data.Maybe.Hash_fe1a9ed1fe3015c135b766464e0bcb971d1cd2b1aa733a473dd1055ba4b7eb60,quid2.module.Data.PatchedString.Hash_dd1364a9fd1fbb6ef3566bd53ab21bea8fd8cf3a2637320c01931c7539d97b2a,quid2.module.Data.Ref.Hash_380d3344c306e7f70b9cff78b9eebd922dc765caecde389796a59a35f209229f,quid2.module.Data.String.Patch.Hash_ad09b4eb1c7a9876fcdd4031a75754b84622ecc45eb17f9838703a87d8dacd81,quid2.module.Language.Quid2.Hash_5be85ea9e525910233327d11ce34d2b5095c16257b497ea9726900782541ac3c,quid2.module.Language.Quid2.Syntax.Hash_92fe44c07b551e4ff3b4c68da1eaaac15032a0f8d230172958f34a5fbe8e98dd,quid2.module.Network.Domain.Hash_38fd29d583e084e61f43eb4a899c4f4abf29672b7111406e06c47cc4248b9267,quid2.module.Service.Org.Quid2.App.Source.Hash_9a20f06b942939dc6a4493ff7d788698f4e1ad201ec5c8abe83ffc870ff0ec92,quid2.module.Service.Org.Quid2.Language.Quid2.Hash_4e46ba8143b04ea926075d34899951fe862ef703c1da0dbeafd496500e2c9296,quid2.module.Service.Org.Quid2.Language.Quid2.Hash_ae149a107b5fd4bec1362367a6bb6688b6786f1afe1ffe79d1cdd44d481be279,quid2.module.Service.Org.Quid2.Language.Quid2.Hash_cd57f4f3d8b570a0f9553dec1ece2469a399336581f6927b5386936b1a002883,quid2.module.Service.Org.Quid2.Language.Quid2.Hash_ddcd1b09d236d5fe6e50de378249a657906530edef93bab7ac534e61c8d9182d]);
+})();

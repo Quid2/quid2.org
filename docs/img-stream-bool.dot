@@ -1,0 +1,24 @@
+digraph StreamBool { 
+ordering = out
+
+{rank = same
+node[shape=house]
+bool [label="Bool ≡ False | True"]
+stream [label ="Stream Bool ≡ Stream Bool (Stream Bool)"]
+}
+
+{rank = same
+b1  [label="|"]
+Stream [shape=record,label="Stream | <s0> Bool | <s1> Stream Bool"]
+}
+
+bool -> b1[style=dotted]
+false [label="False",shape=record]
+true  [label="True",shape=record]
+b1 -> false [label= "0"];
+b1 -> true [label= "1"];
+
+stream -> Stream[style=dotted]                  
+Stream:s0 -> bool
+Stream:s1 -> stream
+}

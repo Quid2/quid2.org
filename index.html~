@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  
+  <head>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+ <title>Quid2</title>
+
+<!--
+    <script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>     
+-->
+
+ <script type="text/javascript" src="js/polyfill.js"></script>
+
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/lib/codemirror.js"></script>
+
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/lib/util/dialog.js"></script>
+
+  <link rel="stylesheet" href="http://jslib.quicquid.org/CodeMirror-2.25/lib/util/dialog.css">
+    
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/lib/util/searchcursor.js"></script>
+
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/lib/util/search.js"></script>
+
+<script src="http://jslib.quicquid.org/CodeMirror-2.25/lib/util/match-highlighter.js"></script>
+
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/mode/haskell/haskell.js"></script>
+
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/mode/css/css.js"></script>
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/mode/xml/xml.js"></script>
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/mode/mixed/mixed.js"></script>
+ <script src="http://jslib.quicquid.org/CodeMirror-2.25/mode/javascript/javascript.js"></script>
+
+  <link rel="stylesheet" href="http://jslib.quicquid.org/CodeMirror-2.25/lib/codemirror.css">
+  
+  <!-- CHECK 
+  <link rel="stylesheet" type="text/css" href="css/codemirror-custom.css"/>
+  -->
+
+  <link rel="stylesheet" href="js/closure-library/closure/goog/demos/css/demo.css" >
+
+  <!-- BUG: Hardwired -->
+  <link rel="stylesheet" href="http://jslib.quicquid.org/closure-custom/tree.css"/>
+  <link rel="stylesheet" href="js/closure-library/closure/goog/css/autocomplete.css">
+
+  <link rel="stylesheet" href="js/closure-library/closure/goog/css/roundedtab.css">
+  <link rel="stylesheet" href="js/closure-library/closure/goog/css/tab.css">
+  <link rel="stylesheet" href="js/closure-library/closure/goog/css/tabbar.css">
+
+  <link rel="stylesheet" type="text/css" href="css/redmond/jquery-ui-1.8.7.custom.css"/>
+  <link rel="stylesheet" type="text/css" href="css/doc.css"/>
+
+    <script type="text/javascript">
+      if (!window.console) { // && !console.firebug) {
+        var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+                     "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile","profileEnd"];
+        
+        //alert ("no console");
+        window.console = {};
+        for (var i = 0; i < names.length; ++i)
+          window.console[names[i]] = function() {}
+            }
+    </script>
+
+<!--
+ <script type="text/javascript" src="js/flapjax-2.1-modified.js"></script>
+-->
+
+ <!--[if lt IE 9]>
+    <script src="http://jslib.quicquid.org/excanvas.js"></script>
+ <![endif]-->
+
+<!--     
+ <script type="text/javascript" src="http://jslib.quicquid.org/flapjax-2.1-modified.js"></script>
+ <script src="https://www.google.com/jsapi?key=ABQIAAAA5KEFreVw4nHX3iAllQA95xTGnzZ3xIjxPEgzHX8Pz4rQf_tZaxSgLftPb0XuTcbBaZ-4hrTxVBvI_w" type="text/javascript"></script>
+ <script type="text/javascript">
+    google.load("jquery", "1.5");
+    google.load("jqueryui", "1.8");
+  </script>
+-->
+
+ <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>            
+
+ <script src="http://jslib.quicquid.org/resize-1.1.min.js"></script>
+
+ <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>            
+
+<!--
+ <script type="text/javascript" src="js/jquery.tools.min.js"></script>         
+ <script type="text/javascript" src="js/toolbox.expose-modified.js"></script>  
+ <script type="text/javascript" src="js/jquery.layout.js"></script>            
+ <script type="text/javascript" src="http://jslib.quicquid.org/OpenAjax/release/unmanagedhub/OpenAjaxUnmanagedHub.js"></script>	
+ <script type="text/javascript" src="http://jslib.quicquid.org/diff_match_patch.js"></script>            
+ <script type="text/javascript" src="http://jslib.quicquid.org/jstree/jquery.jstree.js"></script>	
+-->
+
+ <script type="text/javascript" src="http://jslib.quicquid.org/jquery.jeditable.mini.js"></script>   
+
+ <script type="text/javascript" src="http://jslib.quicquid.org/jquery.json.min.js"></script>
+
+ <script type="text/javascript" src="http://jslib.quicquid.org/v2/Array.js"></script>            
+
+ <script type="text/javascript" src="js/closure-library/closure/goog/base.js"></script>
+
+ <script type="text/javascript" src="js/quid2-deps.js"></script>
+
+ <script type="text/javascript">"use strict";</script>
+<!--
+  <script type="text/javascript" src="js/test.js"></script>
+-->
+  <script type="text/javascript">
+    goog.require('quid2.ui.Main');
+  </script>
+
+<script type="text/javascript">
+    $(function() {    
+      quid2.ui.Main($("#main"),new goog.History(true,"blank.html",goog.dom.getElement("history_state"),goog.dom.getElement("history_frame")));
+    });
+</script>
+
+</head>
+
+<body>
+
+  <div id="main" style="display: none;">
+    <input id="history_state" type="text" style="display: none;" name="history_state">
+    <iframe id="history_frame" type="text" style="display: none;"></iframe>
+  </div>    
+
+</body>
+</html>

@@ -1,0 +1,1408 @@
+<p>For more information and the most recent version of this specification check <a href="http://quid2.org">http://quid2.org</a>.</p>
+<h1 id="what-is-quid2">What is Quid2?</h1>
+<p>Quid2<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> is a novel approach to the creation of open, evolvable, consistent and efficient distributed systems.</p>
+<p>It aims to be as simple and pragmatic as possible but also expressive enough to represent and exchange any kind of information and implement any kind of distributed system.</p>
+<p>It consists of:</p>
+<ul>
+<li><p>A flexible evaluation model to coordinate and exchange information across distributed agents.</p></li>
+<li><p>A simple yet expressive and precise language to define <strong>globally unique</strong> data types.</p></li>
+<li><p>An abstract network protocol plus a set of concrete implementations to communicate in different network environments (single process, Internet, Web clients).</p></li>
+<li><p>An efficient serialisation format to store and transfer values of potentially unlimited size.</p></li>
+</ul>
+<h2 id="why-is-quid2-or-a-close-relative-needed">Why Is Quid2 (Or A Close Relative) Needed?</h2>
+<p>Consider the following scenario: a user, connected to the Internet via a slow link, urgently needs to print a very big spreadsheet, appropriately named <code>BS.XSL</code>, in her office.</p>
+<p>The office provides three services:</p>
+<ul>
+<li>a store where documents are held</li>
+<li>a converter that can transform a spreadsheet document to a PDF document</li>
+<li>a printer that can print PDF documents</li>
+</ul>
+<p>The initial situation is the following:</p>
+<div class="figure">
+<embed src="/Users/titto/workspace/quid2-docs/src/Quid2/Doc/coordinationInitial.pdf" /><p class="caption">A Coordination Problem</p>
+</div>
+<p>A brief explanation about the diagram, the functionality provided by every service is neatly specified by a list of function signatures:</p>
+<ul>
+<li><p>Converter's <code>convert::Doc -&gt; PDF</code> is a pure function that given a document (a <code>Doc</code>) will return a <code>PDF</code> document. Pure means that <code>convert</code> works just like a mathematical function: given a certain input it will always return the same output (<code>2+2</code> always equals <code>4</code>). A given <code>Doc</code> will always be converted to the same identical <code>PDF</code>.</p></li>
+<li><p>Store's <code>doc::String -&gt; IO Doc</code> is an impure function that given a document name will return the corresponding file. We know that is impure because it doesn't return a <code>Doc</code> but an <code>IO Doc</code>. The IO means that this is an Input/Output function that gets its hands dirty by somehow interacting with the external world, in this case presumably a hard disk where documents are stored. If we apply the same function again at a later time we might get a different result as the document stored under the name &quot;BS.XSL&quot; in the disk might have been udpated.</p></li>
+<li><p>The Printer's <code>print::PDF -&gt; IO ()</code> is an impure function that given a <code>PDF</code> file will print it and return an <code>()</code>. <code>()</code> is a nullary (empty) value, returned just to let us know that the printer has successfully completed its job. The function is obviously impure: if we try to print the same document again we might receive an &quot;Out of Paper&quot; error rather than a nice round <code>()</code>. The output of the function depends on the state of the world and as the world changes all the time (paper finishes, toner get stolen), the same result cannot be guaranteed.</p></li>
+</ul>
+<p>Neither of these services in isolation can provide the service that the user needs so some coordination will be needed, so what is she to do?</p>
+<h3 id="manual-coordination">Manual Coordination</h3>
+<p>The user might coordinate these services directly and manually: the following diagram shows how she might go about it, connecting to each service in turn and moving data back and forth<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>.</p>
+<div class="figure">
+<embed src="/Users/titto/workspace/quid2-docs/src/Quid2/Doc/coordinationManual.pdf" /><p class="caption">Manual Coordination</p>
+</div>
+<p>It works, but is cumbersome and not particularly efficient: what might be rather bulky documents are transferred multiple times on a slow connection.</p>
+<h3 id="a-custom-front-end">A Custom Front End</h3>
+<p>There is another solution: maybe our user has been prevident and before leaving office she has created a custom front end, an agent that knows all about printing her BS document.</p>
+<div class="figure">
+<embed src="/Users/titto/workspace/quid2-docs/src/Quid2/Doc/coordinationCustom.pdf" /><p class="caption">Custom Solution</p>
+</div>
+<p>It's a brilliant solution: all she needs to do is to get the process started, the custom front-end then takes care of all the coordination.</p>
+<p>It's also efficient as most communication takes place on local high speed links.</p>
+<p>But what if she wants to print a different document? Or if she has different kinds of documents to print? Or if occasionally some additional conversion or reformatting operation is required? How many different custom functions will she need<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>?</p>
+<h3 id="distributed-evaluation">Distributed Evaluation</h3>
+<p>There is a better way. At the place of the rigid custom front end, she puts a flexible Coordinator that has the capability of evaluating simple expressions.</p>
+<p>She can now send an expression that, when executed by the Coordinator, will do exactly what she requires:</p>
+<p><code>Store.doc &quot;BS.XSL&quot; &gt;&gt;= Printer.print . Converter.convert</code></p>
+<p>The Coordinator implements just two additional, but very powerful, higher order<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a> functions:</p>
+<ul>
+<li><p><code>(&gt;&gt;=)::IO a -&gt; (a -&gt; IO b) -&gt; IO b</code> is a sequencing operation used to bind together different IO operations <a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a>. Given an IO operation that returns some value (<code>IO a</code>), it will execute it and then feed its result to the next IO operation (<code>a -&gt; IO b</code>). In the example, it is used to feed the <code>Doc</code> returned by <code>doc::String -&gt; IO Doc</code> to the print operation that follows.</p></li>
+<li><p><code>(.)::(b -&gt; c) -&gt; (a -&gt; b) -&gt; (a -&gt; c)</code> is functional composition: given two compatible functions it will return their combination. In the example, the <code>Doc</code> returned by <code>doc</code> cannot be printed directly, so we compose <code>print::PDF -&gt; IO ()</code> with <code>convert::Doc -&gt; PDF</code> obtaining just what we need: a print function that given a <code>Doc</code> will print it (a <code>Doc -&gt; IO ()</code> function).</p></li>
+</ul>
+<p>Note that the <code>Coordinator</code> is totally generic, it can be used to orchestrate all kind of activities and calculations across any number of different services. It's simple but totally flexible<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a>.</p>
+<div class="figure">
+<embed src="/Users/titto/workspace/quid2-docs/src/Quid2/Doc/coordinationEvaluator.pdf" /><p class="caption">Distributed Evaluation</p>
+</div>
+<h3 id="extensible-distributed-evaluation">Extensible Distributed Evaluation</h3>
+<p>Obviously she has lost the extreme simplicity of the custom solution: repetitive operations now have to be entered as, possibly verbose, expression. This can be easily fixed by adding to the Coordinator the capability of accepting definitions of new functions<a href="#fn7" class="footnoteRef" id="fnref7"><sup>7</sup></a> ending up with a system that is both flexible and concise.</p>
+<div class="figure">
+<embed src="/Users/titto/workspace/quid2-docs/src/Quid2/Doc/coordinationFinal.pdf" /><p class="caption">Extensible Distributed Evaluation</p>
+</div>
+<p>Quid2 provides precisely the tools required to build this kind of simple but flexible and scalable solutions.</p>
+<!--
+Distributed systems are build using very different models: REST, RPC, streaming, etc.
+
+^[but not simpler, following the *dictum* of you-know-who.]
+
+RPC example:
+(Appl (Prim "IO>>=") (Func "printString") (Literal ...) (CallBack "my_cb"))
+
+Signal example::
+(Appl (Prim "void") (Func "printString") (Literal ...) (CallBack "my_cb"))
+
+Streaming is currently implemented by methods that take persistent
+ call backs as parameters:
+
+subscribe :: CB Int -> Q ()
+
+To stop streaming, we just delete the CB.
+
+Streaming example (should look at pipes package, maybe even for normal
+calls):
+printQuotes :: Security -> Q
+
+## A Global example: buying airplane tickets online
+
+## Developing in Quid2
+
+just like now: users create modules, of which there can be many versions, in their own favourite language | directly in quid2 syntax.
+
+write a translator from simple quid2 syntax to full quid2 syntax (is this possible?) 
+-->
+
+<h1 id="language">Language</h1>
+<p>To both explain and specify the language at the core of Quid2 we:</p>
+<ul>
+<li><p>start by quickly introducing some basic concepts</p></li>
+<li><p>proceed to an informal exposition of the Quid2 language structure</p></li>
+<li><p>provide a formal specification of the language abstract structure in the language itself</p></li>
+</ul>
+<p>Note that, as Quid2 is self-defined, we sometime need to use concepts before they are fully explained.</p>
+<p>It might be advisable to start by quickly browsing the contents of this chapter, skipping what is not immediately understandable and coming back to it later.</p>
+<p>Hopefully it will all make sense in the end :-)</p>
+<h2 id="basic-concepts">Basic Concepts</h2>
+<p>The Quid2 global space is a distributed set of definitions (or declarations, we will use the two terms interchangeably) of functions and datatypes.</p>
+<p>Quid2 is a typed language with a simple but expressive polymorphic type system and a hierarchical type hierarchy (composed by values, types, kinds, sorts and higher sorts).</p>
+<!--
+Type expression are all assumed to be universally quantified. For example, the type expression *a -> a* denotes the type *forall a. a -> a*.
+-->
+  
+<p>A function declaration binds a qualified name to an expression.</p>
+<p>An expression denotes a value and has a static type<a href="#fn8" class="footnoteRef" id="fnref8"><sup>8</sup></a>.</p>
+<p>Evaluating an expression consists in reducing an expression to the value it denotes.</p>
+<p>Could as in Coq, evaluation order be itself a parameter? Lazy/Eager ..? What would be the advantage?</p>
+<p>A value is composed by a type and either:</p>
+<ul>
+<li>an array of bytes, built according to the <a href="#serialisation">canonical serialisation</a></li>
+<li>a function located at some network or local address</li>
+<li>an error</li>
+</ul>
+<p>A datatype declaration defines an algebraic datatype (composed by one type constructor plus a set of value constructors).</p>
+<p>A constructor is a function that creates a value (at some level of the type hierarchy).</p>
+<h2 id="informal-syntax">Informal Syntax</h2>
+<p>Quid2 does not have a formally defined textual syntax<a href="#fn9" class="footnoteRef" id="fnref9"><sup>9</sup></a>.</p>
+<p>However, for the purpose of this report, we will briefly introduce and use a convenient informal syntax.</p>
+<h2 id="constructors">Constructors</h2>
+<p>Constructors are denoted by identifiers beginning with an uppercase letter or symbols (identifiers composed of non-alphanumeric characters).</p>
+<p>Constructors can be applied to one or more other values.</p>
+<p>Some examples:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">False</span>    <span class="co">-- boolean false</span>
+
+<span class="dt">True</span>     <span class="co">-- boolean true</span>
+
+<span class="co">-- a missing optional value</span>
+<span class="dt">Nothing</span>  
+
+<span class="co">-- a present optional value</span>
+<span class="co">-- Just is applied to True and together form a single value.  </span>
+<span class="dt">Just</span> <span class="dt">True</span>
+
+<span class="co">-- the nullary value</span>
+()</code></pre>
+<p>There is a special syntax for numbers, chars and strings constructors:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dv">1</span>     <span class="co">-- a positive integer</span>
+
+<span class="fu">-</span><span class="dv">5</span>    <span class="co">-- a negative integer</span>
+
+<span class="dv">3</span><span class="fu">.</span><span class="dv">14</span>  <span class="co">-- a floating point</span>
+
+<span class="ch">&#39;a&#39;</span>   <span class="co">-- the character a</span>
+
+<span class="st">&quot;a string&quot;</span> <span class="co">-- a unicode string</span></code></pre>
+<p>There is also a special syntax for two common data structures: lists (unlimited sequences of values of the same type) and tuples (fixed sequences of values of possibly different types):</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- a list of integers</span>
+[<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>] 
+
+<span class="co">-- a tuple composed by a char, a string and an integer</span>
+(<span class="ch">&#39;a&#39;</span>,<span class="st">&quot;bc&quot;</span>,<span class="dv">22</span>) </code></pre>
+<!--
+### Tuples 
+A tuple is a sequence of values, of possibly different types.
+
+Tuples can be of arbitrary length (0..) (|| or length>=2).
+
+```haskell
+data Tuple0 = Tuple0
+
+data Tuple1 a = Tuple1 a
+
+data Tuple2 a b = Tuple2 a b
+
+data () = () 
+
+-- missing: data (_) a b = (_) a b
+
+data (,) a b = (,,) a b
+
+data (,,) a b c = (,,) a b c
+```
+
+Or we might have just the couple (,) and define all tuples as nested appls of it = (,,) = (,) a (,) b c 
+-->
+
+<h2 id="algebraic-datatype-definitions">Algebraic Datatype Definitions</h2>
+<p>Algebraic datatype declaration are used to introduce new datatypes and therefore new constructors.</p>
+<p>Some examples follow.</p>
+<p>A datatype that contains no values:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Empty</span></code></pre>
+<p>A datatype with a single value (note that the datatype name can be the same as the name of one of its constructors):</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> () <span class="fu">=</span> ()</code></pre>
+<p>A datatype with two values:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Bool</span> <span class="fu">=</span> <span class="dt">False</span> <span class="fu">|</span> <span class="dt">True</span></code></pre>
+<p>A simple recursive datatype (a representation of the natural numbers):</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">N</span> <span class="fu">=</span> <span class="dt">Z</span> <span class="fu">|</span> <span class="dt">S</span> <span class="dt">N</span>
+
+zero <span class="fu">=</span> <span class="dt">Z</span>
+
+one <span class="fu">=</span> <span class="dt">S</span> <span class="dt">Z</span>
+
+two <span class="fu">=</span> <span class="dt">S</span> (<span class="dt">S</span> <span class="dt">Z</span>)
+
+three <span class="fu">=</span> <span class="dt">S</span> two</code></pre>
+<p>A parametric datatype:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> a</code></pre>
+<p>A parametric datatype with two variables:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Either</span> a b <span class="fu">=</span> <span class="dt">Left</span> a <span class="fu">|</span> <span class="dt">Right</span> b</code></pre>
+<p>A parametric and recursive nested datatype (a list type):</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">List</span> a <span class="fu">=</span> <span class="dt">Nil</span>               <span class="co">-- An empty list.</span>
+            <span class="fu">|</span> <span class="dt">Cons</span> a (<span class="dt">List</span> a)   <span class="co">-- A list: a value followed by another list.</span></code></pre>
+<p>Another list datatype, using symbols as constructor names:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> [] a <span class="fu">=</span> []             <span class="co">-- An empty list.</span>
+            <span class="fu">|</span> <span class="fu">:</span> a ([] a)   <span class="co">-- A list: a value followed by another list.</span></code></pre>
+<hr />
+<p>Algebraic datatype declarations have the following syntax:</p>
+<p>[<code>data</code>] <em>simpleType</em> [<code>=</code> <em>constructor</em> {<code>|</code> <em>constructor</em>}]</p>
+<p><em>simpleType</em> = <em>id</em> {<em>variable</em>}<sub>0..256</sub></p>
+<p><em>constructor</em> = <em>id</em> {<em>type</em>}</p>
+<p><em>type</em> = <em>id</em> | <em>variable</em> | <em>type</em> <em>type</em> | <em>type</em> <code>-&gt;</code> <em>type</em> | <code>(</code><em>type</em><code>,</code><em>type</em>{<code>,</code> <em>type</em>}<code>)</code> | <code>[</code><em>type</em><code>]</code> | <code>(</code><em>type</em><code>)</code></p>
+<p><em>id</em> = <em>name</em> | <em>symbol</em></p>
+<p><em>name</em> = an identifier beginning with an uppercase letter</p>
+<p><em>symbol</em> = an identifier composed of non-alphanumeric characters</p>
+<p><em>variable</em> = an identifier beginning with a lowercase letter</p>
+<p>Where:</p>
+<ul>
+<li><code>data</code> , <code>=</code> , <code>|</code> ... are keywords</li>
+<li>| indicates an alternative between two elements</li>
+<li>{}<sub>n..m</sub> indicates an element repeated between n and m times</li>
+<li>[] indicates an optional element (a shorthand for {}<sub>0..1</sub>)</li>
+</ul>
+<!-- * plain texts as (application) are comments
+
+The prefix \I or \i is not considered part of the identifier name. Therefore, \iperson is just an initial lowercase identifier
+named person and \Iperson is an initial uppercase identifier named person.
+-->
+
+<hr />
+<h3 id="why-algebraic">Why Algebraic?</h3>
+<p>As an algebraic datatypes is a sum of (named) products of types, their structure is similar to that of ordinary algebraic expressions.</p>
+<p>Consider the following type:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Either</span> a b <span class="fu">=</span> <span class="dt">Left</span> a <span class="fu">|</span> <span class="dt">Right</span> b</code></pre>
+<p>How many values does it have?</p>
+<p><code>Either</code> contains all the <code>Left</code> values, that's to say all values of type <code>a</code>, plus all the <code>Right</code> values, that's to say all the values of type <code>b</code>.</p>
+<p>We could say that:</p>
+<p><code>Either a b = a + b</code></p>
+<p>Now consider the type:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Both</span> a b <span class="fu">=</span> <span class="dt">Left</span> a <span class="fu">|</span> <span class="dt">Right</span> b <span class="fu">|</span> <span class="dt">Both</span> a b</code></pre>
+<p>It has all the values of <code>Either</code> plus the values added by the <code>Both</code> constructor.</p>
+<p>How many values can be created using the <code>Both</code> constructor?</p>
+<p>For every <code>a</code> value we can have any <code>b</code> value so the number of <code>Both</code> values is equal to the number of <code>a</code> values multiplied by the number of <code>b</code> values.</p>
+<p>We could say that:</p>
+<p><code>Both a b = a + b + a * b</code></p>
+<p>Doesn't that look precisely like one of these little algebraic formula that we all studied at primary school?</p>
+<p>Syntactically, the only difference is that in the datatype definition we:</p>
+<ul>
+<li>give an explicit name to every term</li>
+<li>write + as |</li>
+<li>don't explicitly write * (just as we usually do in algebra)</li>
+</ul>
+<p>Applying these rules the algebraic formula:</p>
+<p><code>Both a b = a + b + a * b</code></p>
+<p>translates precisely back to our algebraic datatype definition:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Both</span> a b <span class="fu">=</span> <span class="dt">Left</span> a <span class="fu">|</span> <span class="dt">Right</span> b <span class="fu">|</span> <span class="dt">Both</span> a b</code></pre>
+<h2 id="primitive-types">Primitive Types</h2>
+<p>We will assume a few primitive types, for which we do not need to provide an explicit datatype definition:</p>
+<ul>
+<li>Unit type: <code>()</code></li>
+<li>Unicode characters: <code>Char</code></li>
+<li>Unsigned integers: <code>Word8</code> (8 bits), <code>Word16</code>, <code>Word32</code> and <code>Word64</code></li>
+<li>Signed integers: <code>Int8</code>, <code>Int16</code>, <code>Int32</code> and <code>Int64</code></li>
+<li>Unlimited size signed Integers: <code>Integer</code></li>
+<li>Floating point numbers: <code>Float16</code>, <code>Float32</code> and <code>Float64</code></li>
+</ul>
+<p>We also have the parametric types:</p>
+<ul>
+<li>the function type: <code>a -&gt; b</code></li>
+<li>lists: <code>[a]</code></li>
+<li>a whole family of tuple types (of size &gt;=2): <code>(a,b)</code> <code>(a,b,c)</code> <code>(a,b,c,d)</code> ...</li>
+</ul>
+<p>We will also use <code>String</code> as a shorthand for <code>[Char]</code>.</p>
+<p>We can imagine the primitive types defined as follows:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> () <span class="fu">=</span> ()
+
+<span class="kw">data</span> <span class="dt">Char</span> <span class="fu">=</span> <span class="ch">&#39;\NUL&#39;</span> <span class="fu">...</span>  <span class="fu">|</span> <span class="ch">&#39;a&#39;</span> <span class="fu">|</span> <span class="ch">&#39;b&#39;</span> <span class="fu">...</span> <span class="fu">|</span> <span class="ch">&#39;\1114111&#39;</span>
+
+<span class="kw">data</span> <span class="dt">Word8</span> <span class="fu">=</span> <span class="dv">0</span> <span class="fu">|</span> <span class="dv">1</span> <span class="fu">..</span> <span class="fu">|</span> <span class="dv">255</span>
+
+<span class="kw">data</span> <span class="dt">Int8</span> <span class="fu">=</span> <span class="fu">-</span><span class="dv">128</span> <span class="fu">|</span> <span class="fu">-</span><span class="dv">127</span> <span class="fu">..</span> <span class="fu">|</span> <span class="dv">127</span>
+
+<span class="kw">data</span> <span class="dt">Integer</span> <span class="fu">=</span> <span class="fu">-</span>infinite <span class="fu">...</span> <span class="fu">|</span> <span class="fu">+</span>infinite
+
+<span class="kw">data</span> <span class="dt">Float32</span> <span class="fu">=</span> <span class="fu">...</span> <span class="fu">|</span> <span class="dv">0</span><span class="fu">.</span><span class="dv">1</span> <span class="fu">..</span> <span class="fu">|</span> <span class="dv">0</span><span class="fu">.</span>1<span class="dt">E</span><span class="fu">+</span><span class="dv">1</span> <span class="fu">...</span>
+
+<span class="kw">data</span> (<span class="ot">-&gt;</span>) a b
+
+<span class="kw">data</span> [] a <span class="fu">=</span> []
+            <span class="fu">|</span> <span class="fu">:</span> a ([] a)
+
+<span class="kw">data</span> (,,) a b <span class="fu">=</span> (,,) a b
+<span class="kw">data</span> (,,,) a b c <span class="fu">=</span> (,,,) a b c
+<span class="fu">...</span> infinite<span class="fu">???</span> tuples</code></pre>
+<p>Finally the parametric IO type that indicates a value that is the result of an interaction with the external world.</p>
+<p>You can think of an <code>IO a</code> as a pure function with an additional hidden parameter of type <code>World</code> that indicates the current state of the world<a href="#fn10" class="footnoteRef" id="fnref10"><sup>10</sup></a>:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">IO</span> a <span class="fu">=</span> <span class="dt">World</span> <span class="ot">-&gt;</span> a</code></pre>
+<p>There are cases when we do not expect a value to be returned, these are marked by the special type <code>IOK</code>.</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">IOK</span> <span class="fu">=</span> <span class="dt">World</span> <span class="ot">-&gt;</span> ()</code></pre>
+<p>From the point of view of the caller, a function of type <code>IOK</code> performs exactly like an <code>IO ()</code>.</p>
+<p>From the point of view of the callee, the function is received, its behaviour performed but nothing is returned back.</p>
+<h3 id="type-judgments-type-checking">Type Judgments, type checking</h3>
+<p>Requirements: * simple to understand * simple to use * efficient and simple to implement (even better if typechecking could be subsumed by de/serialisation) * easy to map to a variety of existing languages (haskell, js, java...) * support for upward compatibility: built in numeric subtypes and, more importantly, data type subsets * compatible with absolute types * support for data types * support for data structures: list, tuples, maps. * expressive, open potential for future expansion ** support for type classes/interfaces ** support for first class modules ** support for first class patterns ** The concepts to unify: value, expression, type, kind, sort, pattern, class/interface, module. ** Pluggable? As is defined in the language it can also be changed.</p>
+<p>We need to support multiple types for functions.</p>
+<p>The most expressive, though the least constraining is a verbal description. It allows to express anything but cannot be mechanically verified.</p>
+<p>In between, we have simple fully inferable type systems.</p>
+<p>Then we have more sophisticated but maybe only checkable type systems.</p>
+<p>General type and subtype theory: http://lucacardelli.name/Papers/OnUnderstanding.A4.pdf</p>
+<p>Type system design options: * haskell like: terms : types : * | * -&gt; * full implementation of typechecking algorythm, including typeclasses in ~/cache/haskell/language/thih-multiparam/ http://web.cecs.pdx.edu/~mpj/thih/thih.pdf</p>
+<ul>
+<li>pure subtype system best to represent numeric subtypes and, more importantly, data type subsets (used for upward compatibility). ?? 3.3 controvariance: can a function on t be applied to t1&lt;t ? if not what is the whole point?</li>
+</ul>
+<p>http://redwood.mza.com/~dhutchins/papers/popl10-hutchins.pdf</p>
+<ul>
+<li>pure type systems: Jan-Willem Roorda; Johan Jeuring. &quot;Pure Type Systems for Functional Programming&quot;. Roorda's masters' thesis (linked from the cited page) also contains a general introduction to pure type systems.</li>
+</ul>
+<p>Pure type system with single term level and data types <sub>/cache/haskell/language/Henk2000/ http://www.staff.science.uu.nl/</sub>jeuri101/MSc/jwroorda</p>
+<ul>
+<li>dependent system: single level with dependent types</li>
+</ul>
+<p>Simple implementation of dep type system http://www.andres-loeh.de/LambdaPi/LambdaPi.pdf ~/cache/haskell/language/Agda-2.3.2.2/src/prototyping/termrep/lambdapi/</p>
+<p>** Idris: practical haskell-like dependent type language</p>
+<p>** lambda aleph dependent language with single level terms, (sub)types as multi-values: http://www.leafpetersen.com/leaf/publications/dtp2013/lambda-aleph-overview.pdf Formalisation of the λℵ Runtime http://arxiv.org/pdf/1307.5277v1.pdf</p>
+<p>** Agda, total dependent language and theorem prover http://oxij.org/note/BrutalDepTypes/ http://www.cse.chalmers.se/<sub>ulfn/papers/afp08/tutorial.pdf http://www.cse.chalmers.se/</sub>peterd/papers/DependentTypesAtWork.pdf</p>
+<p>Can this be defined as a type function?</p>
+<p>-- typeOf 0 = Word8</p>
+<p>Adding ⊥ to the set of values is also called lifting.</p>
+<h3 id="coordination">Coordination</h3>
+<p>See Concurrent bondi ~/cache/haskell/language/Concurrent Pattern Calculus .pdf</p>
+<!--
+### Subtyping Partial Ordering of Types
+
+Some Types are proper subsets of others:
+Word8 <= Word16 ..<= Word64
+Int8 <= .. <= Int64 <= Integer
+Float32 <= Float64
+
+If S is a subtype of T, the subtyping relation is often written S <: T, to mean that any term of type S can be safely used in a context where a term of type T is expected.
+
+If we thing of types as sets than the subtying relationship coincides with the subset relationship.
+
+Definitional subtyping:
+Define a new type as a subset of another
+
+-- Extensional definition
+data EUCapital = .. Roma | Paris | Berlin | London
+
+-- Scotland leaves the UK and joins the EU as an independent country
+data EUCapital2014 = = .. Roma | Paris | Berlin | London | Edinburgh
+
+-- The UK leaves the EU
+data EUCapital2015 = .. Roma | Paris | Berlin | Edinburgh
+
+-- Turkey joins the EU
+data EUCapital2020 = Roma | Paris | Berlin | London .. | Ankara
+
+A type-constructor C is covariant iff: for all types S,T, if S is a subtype of T then C<S> is a subtype of C<T>.
+Similarly, for contravariance, if S is a subtype of T then C<T> is a subtype of C<S>. Note that S and T have swapped.
+Functions are contravariant in the input, but covariant in the output:
+http://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)
+
+data A a = A a
+data B a = B a
+data C a = C a
+data AB a b = A a | B b
+data ABC a b c = A a | B b | C c
+
+f :: ABC -> A
+-- sub functions of this are:
+A|B|C|AB|ABC -> A|AB|ABC
+
+-- Numbers and chars are built in constructors that have to be specified as a range
+-- A data type can be defined as a range
+data Word8 = 0..255
+data AlphaChar = 'a' .. 'z'
+data AsciiChar = `\00` .. `\7F`
+
+Also explicit enumeration?
+data URLChars = 'a'..'z' | '_'  
+
+-- Not supported: mixing number sets with char sets (?) or normal enumeration 
+
+-- Note: chars could also be defined as numbers: 
+Unicode defines a codespace of 1,114,112 code points in the range 0hex to 10FFFFhex
+data Char = 0x0 .. 0x10FFFF 
+
+-- Intensional definition (unsupported?)
+data Evens = \x::Integer -> x div 2 == 0
+ 
+Subtyping between built-in numeric/character types.
+
+Subtyping between algebraic types.
+
+a) Simple subtyping 
+a <: b if the constructors of a are identical to  the first constructors of b
+
+b) Flexible subtyping
+a <: b if the constructors of a are a subset of the first constructors of b
+
+As we know the datatype definition we can always establish if a type is a subtype of another and we can use this information to map one onto the other.
+
+This can be done implicitly or explicitly.
+
+To support it, we need to pass parameters:
+* with an explicit type signature:
+  * for floats (unless they are expressed as data Rational = Rational Integer Integer)
+  * for flexible algebraic type subtyping
+* or in a common format
+    * for word/ints/chars: easy to implement?
+    * for algebraic types:
+      ** this is already true for simple subtyping
+
+In haskell, we sidestep the problem by using classes that map types to a common generic representation (e.g. Integer or String) or more in general provide a set of common operations.
+
+Constructors could also be used as common methods so that types that share the same constructors can be applied in the same way (see Elm).
+
+functions, including constructors, that accept a type will also automatically accept and convert any subtype (?? this needs a serialisation format that allow us to distinguish ints of different size or a single format for ints of any size).
+
+Or: explicitly defined subtypes using constrains
+
+IsString a => a 
+
+class IsString a where fromString :: String -> a
+instance IsString Int where fromString = readInt
+
+## Numeric Type Defaults
+If a type of a number is not specified or deducible by its context is understood to be:
+
+* Float64, if the number is written in scientific format or contains a decimal point
+* Int64 or Integer otherwise
+-->
+
+<h2 id="type-classes">Type Classes</h2>
+<p>http://okmij.org/ftp/Computation/typeclass.html</p>
+<p>using modules, 3.4.5 3.4.6 and 4.8.1 of file://localhost/Users/titto/cache/haskell/language/pure%20subtype%20systems%20Hutchins2009.pdf</p>
+<p>http://ropas.snu.ac.kr/~bruno/papers/TypeClasses.pdf</p>
+<p>http://ipaper.googlecode.com/git-history/243b02cb56424d9e3931361122c5aa1c4bdcbbbd/Typeclasses/type-class-explorationi.pdf</p>
+<p>Dynamic typeclasses: https://www.fpcomplete.com/user/thoughtpolice/using-reflection</p>
+<h2 id="pattern-matching">Pattern matching</h2>
+<p>Scala allows types to be used as patterns in pattern matching expressions</p>
+<h2 id="the-values-hierarchy">The Values Hierarchy</h2>
+<div class="figure">
+<embed src="/Users/titto/workspace/quid2-docs/src/Quid2/Doc/valuesHierarchy.pdf" /><p class="caption">Values Hierarchy</p>
+</div>
+<p>Values are organised in a hierarchy, where higher levels organize the next lowest level.</p>
+<p>At the lowest level we have the values, neatly separated in sets, each labelled by a type.</p>
+<p>Types are themselves part of a set: that labelled by the catch-all kind <code>*</code>.</p>
+<hr />
+<p>Note the similarity in the relationship between kind and types and the one between types and values.</p>
+<p>In fact, we can think of the <code>*</code> kind as an higher level datatype, whose constructors are the types themselves:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell">kind <span class="fu">*</span> <span class="fu">=</span> <span class="dt">Word8</span>
+       <span class="fu">|</span> <span class="dt">Maybe</span> <span class="fu">*</span>
+       <span class="fu">|</span> <span class="dt">N</span>
+       <span class="fu">...</span>
+
+<span class="co">-- Or:</span>
+
+open kind <span class="fu">*</span><span class="ot"> ::</span> <span class="fu">*</span> <span class="co">-- There is an open kind * of sort *</span>
+
+<span class="dt">Word8</span><span class="ot"> ::</span> <span class="fu">*</span>
+
+<span class="dt">Maybe</span><span class="ot"> ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span>
+
+<span class="dt">N</span><span class="ot"> ::</span> <span class="fu">*</span></code></pre>
+<p>The main difference with ordinary datatypes is that <code>*</code> is open, every time we define a new datatype it gets an additional constructor<a href="#fn11" class="footnoteRef" id="fnref11"><sup>11</sup></a>.</p>
+<p>So values are really 0-level values while types are 1-level values, kinds are 2-level values, sorts are 3-level values and so on.</p>
+<p>Every level defines a different namespace so, for example, the <code>*</code> kind cannot be confused with the <code>*</code> sort.</p>
+<p>Datatypes also have their own namespaces, same named constructors from different datatypes are always distinguishable.</p>
+<p>Obviously, the hierarchy continues <em>ad infinitum</em>, but is not a very interesting kind of infinity given that, starting with the kind level, is <code>*</code> all the way up (things get a lot more interesting if we start promoting lower level datatypes to higher levels, more on this later).</p>
+<hr />
+<h2 id="function-definitions">Function Definitions</h2>
+<p>Functions are introduced by declarations of the form:</p>
+<p>[<em>name</em> <code>::</code> <em>next-higher-level-expression</em>]</p>
+<p>[<code>type</code> | <code>kind</code>] <em>name</em> <code>=</code> <em>expression</em></p>
+<p>The first line is an optional type signature, it indicates the type (or kind or sort) of the function. The declaration is optional when the type can be inferred by the expression itself.</p>
+<p>The initial keyword (<code>type</code> , <code>kind</code> or absent) indicate the level in the type hierarchy at which the definition applies.</p>
+<p>If absent, the definition is at the value level.</p>
+<p>Some examples:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Value level definitions</span>
+
+<span class="co">-- No need for a type signature, this is clearly a string</span>
+speech <span class="fu">=</span> <span class="st">&quot;to be or not to be&quot;</span>
+
+pi<span class="ot"> ::</span> <span class="dt">Float32</span>
+pi <span class="fu">=</span> <span class="dv">3</span><span class="fu">.</span><span class="dv">1416</span>
+
+<span class="ot">printDoc ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+printDoc name <span class="fu">=</span> doc name <span class="fu">&gt;&gt;=</span> print <span class="fu">.</span> convert
+
+<span class="co">-- Type level definitions</span>
+<span class="kw">type</span> <span class="dt">String</span> <span class="fu">=</span> [<span class="dt">Char</span>]
+
+<span class="kw">type</span> <span class="dt">E</span> a <span class="fu">=</span> <span class="dt">Either</span> a <span class="dt">Int</span> </code></pre>
+<h2 id="qualified-names">Qualified Names</h2>
+<p>It's convenient to organise our definitions in a hierarchical namespace.</p>
+<p>We will specify the namespace with the syntax:</p>
+<p><code>module</code> <em>namespace</em> <code>where</code></p>
+<p>For example:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Data</span> <span class="kw">where</span>
+
+<span class="kw">data</span> <span class="dt">Bool</span> <span class="fu">=</span> <span class="dt">False</span> <span class="fu">|</span> <span class="dt">True</span></code></pre>
+<p>defines the type <code>Data.Bool</code> and the constructors <code>Data.False</code>, <code>Data.True</code>.</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Math.Constant</span> <span class="kw">where</span>
+pi <span class="fu">=</span> <span class="dv">3</span><span class="fu">.</span><span class="dv">1416</span></code></pre>
+<p>defines the function <code>Math.Constant.pi</code>.</p>
+<h2 id="located-names">Located Names</h2>
+<p>Quid2 is just a coordination framework, the real functionality is provided at its borders by service providers.</p>
+<p>Functions provided by service providers are denoted by a naming scheme expressed as an ordinary datatype.</p>
+<p>For example, the services described in the initial example might be denoted by values of the following type:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">SimpleAddr</span> <span class="fu">=</span>
+  <span class="dt">SimpleAddr</span>
+  <span class="dt">String</span> <span class="co">-- Agent where function is located: &quot;User&quot; | &quot;Printer&quot; ...</span>
+  <span class="dt">String</span> <span class="co">-- Function name: &quot;print&quot; | &quot;convert&quot; ...</span></code></pre>
+<p>Syntactically, we write these references as:</p>
+<p><code>&lt;&lt;</code> <em>reference</em> <code>&gt;&gt;</code></p>
+<p>A subset of the functions of our example could be expressed as:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Quid2.Example</span> <span class="kw">where</span>
+
+print<span class="ot"> ::</span> <span class="dt">PDF</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+print <span class="fu">=</span> <span class="fu">&lt;&lt;</span><span class="dt">SimpleAddr</span> <span class="st">&quot;Printer&quot;</span> <span class="st">&quot;print&quot;</span><span class="fu">&gt;&gt;</span> 
+
+<span class="ot">convert ::</span> <span class="dt">Doc</span> <span class="ot">-&gt;</span> <span class="dt">PDF</span>
+convert <span class="fu">=</span> <span class="fu">&lt;&lt;</span><span class="dt">SimpleAddr</span> <span class="st">&quot;Converter&quot;</span> <span class="st">&quot;convert&quot;</span><span class="fu">&gt;&gt;</span> 
+
+<span class="kw">data</span> <span class="dt">PDF</span> <span class="fu">=</span> <span class="dt">PDF</span> <span class="dt">String</span>
+
+<span class="kw">data</span> <span class="dt">Doc</span> <span class="fu">=</span> <span class="dt">Doc</span> <span class="dt">String</span></code></pre>
+<!--
+```haskell
+module Time where
+
+type UnixTime = Int64 
+
+currentTime :: IO UnixTime
+currentTime =  
+
+-- pi, approximated to 4 decimals.
+pi :: Float32
+pi = 3.1416
+
+-- Infinite list of prime numbers
+primes :: [Integer]
+primes = <<SimpleAddr "Calculator" "primes">> 
+
+addW8 :: Word8 -> Word8 -> Word8
+```
+
+Definitions are represented as:
+-->
+
+<h2 id="formal-definition">Formal Definition</h2>
+<p>The abstract syntax of Quid2 is defined as follows:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- This is what Quid2 is all about, evaluating expressions.</span>
+<span class="co">-- Evaluation reduces an expression</span>
+<span class="co">-- to the equivalent normal form value.</span>
+<span class="ot">evaluation ::</span> <span class="dt">Expr</span> n t <span class="ot">-&gt;</span> <span class="dt">NFValue</span> n t
+
+<span class="co">{- A typed value in normal form.</span>
+<span class="co">This is the form in which all data</span>
+<span class="co">is ultimately exchanged across Quid2 agents.</span>
+<span class="co">The presence of a Fun contructor</span>
+<span class="co">is exploited to allow the efficient</span>
+<span class="co">progressive transfer of data of</span>
+<span class="co">potentially unlimited size (more about this later).</span>
+<span class="co">-}</span>
+<span class="kw">data</span> <span class="dt">NFValue</span> n t <span class="fu">=</span> 
+  <span class="co">-- a function located at some address</span>
+  <span class="dt">Fun</span> n         
+  <span class="co">-- an array of bytes, built according to the canonical serialisation</span>
+  <span class="fu">|</span> <span class="dt">Lit</span> [<span class="dt">Word8</span>]
+  <span class="co">-- an error</span>
+  <span class="fu">|</span> <span class="dt">Err</span> <span class="dt">String</span> 
+
+<span class="co">-- Absolute declarations, see next section for an explanation.</span>
+<span class="kw">type</span> <span class="dt">AbsType</span> <span class="fu">=</span> <span class="dt">Type</span> <span class="dt">AbsName</span>
+<span class="kw">type</span> <span class="dt">AbsDecl</span> <span class="fu">=</span> <span class="dt">DataDecl</span> <span class="dt">AbsName</span>
+<span class="kw">type</span> <span class="dt">AbsDefinition</span> <span class="fu">=</span> <span class="dt">Definition</span> <span class="dt">AbsName</span>
+
+<span class="kw">data</span> <span class="dt">InternalAbsName</span> <span class="fu">=</span>
+  <span class="co">-- Reference to a data type in the same recursive group. </span>
+  <span class="dt">InternalName</span> <span class="dt">QualName</span>
+  <span class="co">-- A declaration in a group of mutually recursive definitions.</span>
+  <span class="fu">|</span> <span class="dt">ExternalName</span> <span class="dt">AbsName</span> 
+
+<span class="kw">data</span> <span class="dt">AbsName</span> <span class="fu">=</span>
+  <span class="co">-- A stand alone declaration</span>
+  <span class="dt">AbsName</span> (<span class="dt">Ref</span> (<span class="dt">DataDecl</span> <span class="dt">InternalAbsName</span>))
+  
+  <span class="co">-- A decl in a group of mutually recursive definitions.</span>
+  <span class="fu">|</span> <span class="dt">AbsNamePart</span> (<span class="dt">Ref</span> [<span class="dt">DataDecl</span> <span class="dt">InternalAbsName</span>]) <span class="dt">Word8</span> 
+
+<span class="co">-- A value expression</span>
+<span class="kw">type</span> <span class="dt">Value</span> n <span class="fu">=</span> <span class="dt">Expr</span> (<span class="dt">ValueName</span> n) <span class="dt">AbsType</span>
+
+<span class="co">-- A type expression</span>
+<span class="kw">type</span> <span class="dt">Type</span> name <span class="fu">=</span> <span class="dt">Expr</span> (<span class="dt">TypeName</span> name) () 
+
+<span class="co">-- Generic expression. </span>
+<span class="kw">data</span> <span class="dt">Expr</span> n t <span class="fu">=</span>
+  <span class="dt">App</span> (<span class="dt">Expr</span> n t) (<span class="dt">Expr</span> n t)     <span class="co">-- functional application</span>
+  <span class="fu">|</span> <span class="dt">Name</span> n                      
+  <span class="fu">|</span> <span class="dt">Var</span> <span class="dt">Variable</span>                <span class="co">-- a variable  </span>
+  <span class="fu">|</span> <span class="dt">Lambda</span> <span class="dt">Variable</span> (<span class="dt">Expr</span> n t)  <span class="co">-- a lambda expression</span>
+  <span class="fu">|</span> <span class="dt">Signature</span> (<span class="dt">Expr</span> n t) t      <span class="co">-- an explicit type signature</span>
+
+<span class="kw">type</span> <span class="dt">Variable</span> <span class="fu">=</span> <span class="dt">Word16</span>
+
+<span class="co">-- Value constructors</span>
+<span class="kw">data</span> <span class="dt">ValueName</span> n
+    <span class="fu">=</span>
+      <span class="dt">Function</span> n
+    <span class="fu">|</span> <span class="dt">Con</span> <span class="dt">AbsName</span> <span class="dt">Tag</span>  <span class="co">-- data constructor</span>
+    <span class="co">-- Primitive constructors</span>
+    <span class="fu">|</span> <span class="dt">Tuple</span> <span class="dt">Word16</span>  <span class="co">-- (,,) (,,,) ... </span>
+    <span class="fu">|</span> <span class="dt">ListCons</span>      <span class="co">-- : </span>
+    <span class="fu">|</span> <span class="dt">ListNil</span>       <span class="co">-- []  </span>
+    <span class="fu">|</span> <span class="dt">Unit</span>          <span class="co">-- ()</span>
+    <span class="fu">|</span> <span class="dt">Char</span> <span class="dt">Char</span>
+    <span class="fu">|</span> <span class="dt">Word8</span> <span class="dt">Word8</span> <span class="fu">|</span> <span class="dt">Word16</span> <span class="dt">Word16</span> <span class="fu">|</span> <span class="dt">Word32</span> <span class="dt">Word32</span> <span class="fu">|</span> <span class="dt">Word64</span> <span class="dt">Word64</span> 
+    <span class="fu">|</span> <span class="dt">Int8</span> <span class="dt">Int8</span> <span class="fu">|</span> <span class="dt">Int16</span> <span class="dt">Int16</span> <span class="fu">|</span> <span class="dt">Int32</span> <span class="dt">Int32</span> <span class="fu">|</span> <span class="dt">Int64</span> <span class="dt">Int64</span>
+    <span class="fu">|</span> <span class="dt">Float32</span> <span class="dt">Float</span> <span class="fu">|</span> <span class="dt">Float64</span> <span class="dt">Double</span>
+    <span class="fu">|</span> <span class="dt">Integer</span> <span class="dt">Integer</span>
+
+<span class="co">-- Type constructors</span>
+<span class="kw">data</span> <span class="dt">TypeName</span> name
+     <span class="fu">=</span> <span class="dt">TyDecl</span> name
+     <span class="fu">|</span> <span class="dt">TypeFun</span>           <span class="co">-- ^ function type </span>
+     <span class="fu">|</span> <span class="dt">TypeTuple</span> <span class="dt">Word16</span>  <span class="co">-- ^ tuple types: example: TypeTuple 3 == (,,) </span>
+     <span class="fu">|</span> <span class="dt">TypeList</span>          <span class="co">-- ^ list type</span>
+     <span class="fu">|</span> <span class="dt">TypeIO</span>            <span class="co">-- ^ IO type</span>
+     <span class="fu">|</span> <span class="dt">TypeUnit</span>
+     <span class="fu">|</span> <span class="dt">TypeChar</span>
+     <span class="fu">|</span> <span class="dt">TypeWord8</span> <span class="fu">|</span> <span class="dt">TypeWord16</span> <span class="fu">|</span> <span class="dt">TypeWord32</span> <span class="fu">|</span> <span class="dt">TypeWord64</span> 
+     <span class="fu">|</span> <span class="dt">TypeInt8</span> <span class="fu">|</span> <span class="dt">TypeInt16</span> <span class="fu">|</span> <span class="dt">TypeInt32</span> <span class="fu">|</span> <span class="dt">TypeInt64</span>
+     <span class="fu">|</span> <span class="dt">TypeFloat32</span> <span class="fu">|</span> <span class="dt">TypeFloat64</span>
+     <span class="fu">|</span> <span class="dt">TypeInteger</span>
+
+<span class="co">-- Function definition</span>
+<span class="kw">data</span> <span class="dt">Definition</span> n t <span class="fu">=</span> <span class="dt">Definition</span> <span class="dt">QualName</span> (<span class="dt">Expr</span> n t)
+
+<span class="co">-- Algebraic data declaration</span>
+<span class="kw">data</span> <span class="dt">DataDecl</span> name <span class="fu">=</span> <span class="dt">DataDecl</span> {
+  <span class="co">-- qualified Name</span>
+<span class="ot">  ddName::</span><span class="dt">QualName</span>
+  
+  <span class="co">-- number of parametric variables</span>
+  ,<span class="ot">ddNumVars::</span><span class="dt">Word8</span>
+
+   <span class="co">-- value constructors in order of definition</span>
+  ,<span class="ot">ddCons::</span> [<span class="dt">Cons</span> name]  
+}
+
+<span class="co">-- Constructor declaration</span>
+<span class="kw">data</span> <span class="dt">Cons</span> name <span class="fu">=</span> <span class="dt">Cons</span> <span class="dt">Name</span> <span class="dt">Tag</span> (<span class="dt">Maybe</span> [<span class="dt">Name</span>]) (<span class="dt">Type</span> name)
+
+<span class="co">-- Position in data type declaration, 0-based. </span>
+<span class="kw">type</span> <span class="dt">Tag</span> <span class="fu">=</span> <span class="dt">Word16</span> 
+
+<span class="kw">data</span> <span class="dt">Name</span>
+    <span class="fu">=</span> <span class="dt">Id</span> <span class="dt">String</span>       <span class="co">-- &quot;a&quot; &quot;plus&quot; &quot;List&quot;</span>
+    <span class="fu">|</span> <span class="dt">Symbol</span> <span class="dt">String</span>   <span class="co">-- &quot;+&quot; &quot;()&quot;</span>
+
+<span class="kw">type</span> <span class="dt">ModuleName</span> <span class="fu">=</span> <span class="dt">String</span>
+
+<span class="co">-- Qualified Name</span>
+<span class="kw">data</span> <span class="dt">QualName</span> <span class="fu">=</span> <span class="dt">QualName</span> <span class="dt">ModuleName</span> <span class="dt">Name</span> 
+
+<span class="co">-- A transferable, compact, reference to an object.</span>
+<span class="kw">data</span> <span class="dt">Ref</span> a <span class="fu">=</span> <span class="dt">Verb</span> [<span class="dt">Word8</span>] <span class="co">-- Verbatim serialisation</span>
+           <span class="fu">|</span> <span class="dt">Hash</span> [<span class="dt">Word8</span>] <span class="co">-- SHA-256 hash</span></code></pre>
+<p>The Quid2 structural definitions are on purpose parametric, allowing naming conventions suitable for different network environments (in-process, local or global) to be used.</p>
+<h2 id="absolute-datatypes-and-functional-definitions">Absolute Datatypes and Functional Definitions</h2>
+<p>Quid2 can be used in many different ways:</p>
+<ul>
+<li>as a storage and interchange format</li>
+<li>to build distributed but local and self-contained systems, as the one we briefly discussed in the introduction</li>
+<li>to coordinate independently developed Internet services</li>
+</ul>
+<p>To achieve the last objective, it is necessary that, progressively, service providers converge on common or compatible data definitions.</p>
+<p>For example, to allow the coordination of different flight reservation system a common vocabulary of concepts such as flight, ticket, airport, departure and arrival time need to be established.</p>
+<p>This is similar to the process by which natural languages evolve: new words are added all the time and those that are found useful are progressively adopted.</p>
+<p>This is a diffuse, distributed process that cannot be imposed or hurried by force or decree but that can be made smoother by providing a common framework in which these concepts can be expressed.</p>
+<p>To favour this process, Quid2 datatypes and functional definitions are denoted by globally unique identifiers that are deterministically derived from their structure.</p>
+<p>In other terms, datatypes that are structurally identical, even when developed independently, will end up having the same global identifier and therefore functions that use them will be <em>ipso facto</em> composable.</p>
+<p>Absolute datatypes references are build with the following algorithm:</p>
+<ul>
+<li>Split the type graph in sets of strongly connected types (sets of mutually recursive datatypes).</li>
+<li>For each set:
+<ul>
+<li>Transform the set to its canonical form:
+<ul>
+<li>Sort datatypes declarations lexicographically</li>
+<li>For each datatype:
+<ul>
+<li>Normalise variables</li>
+<li>Convert external references to absolute references</li>
+<li>Serialise the dataset value and calculate a unique hash value</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p>There are many ways in which structural equivalence can be defined.</p>
+<p>In Quid2, two datatypes are considered equivalent only if:</p>
+<ul>
+<li>the fully qualified names of their type constructors are identical</li>
+<li>their normalised parametric parameters are identical</li>
+<li>their value constructors are also identical</li>
+</ul>
+<p>Both standalone and mutually recursive sets of datatypes are supported.</p>
+<p>Consider the two declarations:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Maybe</span> b <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> b
+
+<span class="kw">data</span> <span class="dt">Maybe</span> c <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> c</code></pre>
+<p>Maybe does not explicitly refer to any other type.</p>
+<p>So the only thing we need to do is to normalise the variable names transforming both of them to:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> a</code></pre>
+<p>Their global id will therefore be the same.</p>
+<p>In contrast the two declarations:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Maybe</span> b <span class="fu">=</span> <span class="dt">Just</span> b <span class="fu">|</span> <span class="dt">Nothing</span> 
+
+<span class="kw">data</span> <span class="dt">Maybe</span> c <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> c</code></pre>
+<p>won't match as the constructor ordering differs.</p>
+<p>A looser concept of structural equivalence is possible and might be useful in certain cases, it however increases the risk of mismatches (what would be called <em>false friends</em> in natural languages).</p>
+<p>Functional definitions are similarly denoted by globally unique identifiers deterministically derived from their structure.</p>
+<!--
+## Expressions
+
+Strict or Lazy evaluation? Or should it be customisable as in Haskell?
+
+## Expressions Evaluation
+
+There are many different ways of defining expressions, we start with a really simple one.
+
+
+Remote Values browsing and retrieval requirements:
+-- Present values intelligibly to the user (Meaningful name, type, indication of provider?, possibly also associated comments) (this is the answer to the question: Why should I retrieve this value?)
+   Data.Math by Titto
+      -- The pi constant, approximated to 2 decimals.
+      pi :: Double
+      pi = 3.14
+
+-- Distinguish between different values, provided by the same or different providers.
+
+-- Retrieve values: finite values, infinite values and services (IO values, streams) that take parameters (How should I retrieve this?)
+   data Ref n a = Verb [Word8] | Ref n
+
+-- Long term retrieval of large values?
+
+-- Shareable names: names are not user or session specific. 
+
+Components of a value:
+- absolute definition: the canonical serialisation of: QualName+Value (+AbsType?) 
+
+- declaration: name+absType (a, possibly duplicate, identifier, meant
+to express what the thing is, example: Math.pi)
+
+  isn't a name also a unique reference in a given contest?
+
+A value is any value definable via the type system.
+
+A definition:
+
+- (abs)Type: the set of which the value is a member, needed to decode
+  the value. The context into which the value is to be understood.
+
+- reference/address/endpoint (a unique, stable?, executable way to retrieve a value)
+
+- value/extension (the calculated, possibly infinite, value)
+  can also be considered as a simplified intension that includes only
+  actual values and names that point to the remaining parts of the
+  value.
+
+- self-describing value: value+absType
+
+- intension/implementation (the definition of the value)
+
+In WWW:
+Name==Address==URL http:://example.com/one, the name often includes a
+type (index[.html])
+http:://haskell.org/haskellManual.pdf
+Address: http:://haskell.org/haskellManual.pdf
+Name:haskellManual
+Type:pdf
+Intension: The hidden implementation (e.g. a server script)
+extension: The returned page via HTTP.
+type: the MIME type, also retrieved dynamically 
+
+In Haskell:
+Name:: <package>QualName
+
+The simplest kind of value is a finite array of bytes.
+The data Ref a = Hash .. | Verb .. type is an appropriate ref for this kind of value.
+
+Verb [1] :: Ref Word8
+
+This is all that is required to retrieve the value 1::Word8
+
+where Hash is calculated on the base of the value (how if it is infinite?)
+
+Algorithm to produce a Definition:
+
+For the expression:
+-- if it is a pure value, decode it up to a maximum size.
+
+   If the encoded result is Complete, we can build a complete and publisher-independent definition: Literal [serialization]
+
+   In all other cases:
+   We produce a stable local short hash, for example a MD5 of
+   f(QualName,Type+possibly a version name) and returns a: Func (Via
+   (RPC "my.server" "my.port") (At MD5))
+
+-- Now we have a unique definition.
+
+-- ?? To refer to this definition, we can use its Hash.
+   The final obtains Data.Math.pi.Verb_0314
+
+We assume that function ns with same type are always the same, if you
+want another version you have to change name.
+
+data Serialized k = Complete B.ByteString -- Small Pure Value
+                  | Approx B.ByteString k -- Holed value with
+continuation (Pos -> IO a)
+
+Every name has the form Module.Name.Hash
+Data.Math.pi.Hash_1234
+-->
+
+<!--
+<h3>Classes</h3>
+Can classes be simulated (but without automatic derivation of instances)?
+
+We need at least: named fields (not really), functions as values.
+
+tt = double wordDict 3
+
+data NumDict a = NumDict {plus :: a -> a -> a}
+
+-- Num a => double :: a -> a -> a
+double :: NumDict a -> a -> a
+double numDict a = plus numDict a a 
+
+-- hand made instance/dictionary
+wordDict = NumDict {plus=(+)}
+  
+-->
+
+<!--
+### Errors and Error Handling
+
+Since Haskell is a non-strict language, all Haskell types include bottom. 
+
+That is, a value of any type may be bound to a computation that, when demanded, results in an error. When evaluated, errors cause immediate program termination and cannot be caught by the user.
+
+Errors in Haskell are semantically equivalent to bottom. Technically, they are not distinguishable from nontermination.
+
+The Prelude provides two functions to directly cause such errors:
+error :: String -> a undefined :: a
+
+### Caching 
+
+Should a IO a be considered as equivalent to: World a? -> a ?? Would this give as more flexibility? How to distinguish pure/impure functions?
+
+
+### Coding of Large (in either Time or Space) or Infinite Values
+
+It might seem that is useful for recursive data types that can be arbitrary long, but it can also be useful for fixed size values that are expensive to compute.
+
+Requirements:
+
+* Lazily access large/infinite method results and parameters on client/server side.
+* No significant time/space overhead for using non-infinite values.
+* Fairness: Structures (lists, tuples, normal constructors) with multiple infinite substructure can be expanded independently.
+
+Values are returned as expandable approximation (an approx is a lesser value).
+
+Or values are returned as an expression that is not in normal form.
+
+An approximation is a structure where holes are marked with a unique Hole constructor.
+
+Prior to serialising, we transform all datatypes from:
+
+```haskell
+data Maybe a = Just a | Nothing
+
+
+data Tree a = Leaf a | Tree (Tree a) (Tree a) 
+```
+
+to:
+
+```haskell
+data Maybe a f = Just a | Nothing | Hole (Expr f)
+
+data Tree a f = Leaf a | Tree (Tree a) (Tree a) | Hole (Expr f)
+```
+
+If `f == ()` the serialisation of `D f` will be identical to that of `D`.
+
+Otherwise, we now have a way of replacing a value with an expression. 
+
+or 
+
+```haskell
+data Maybe a = Just a | Nothing | Hole H -- where H is the protocol parameter
+```
+
+#### Persistent Unevaluated Values
+
+Typically the functions For large constants: persistency, the holes left in the structure can be opened at any later time.
+-->
+ 
+
+<h1 id="protocol">Protocol</h1>
+<p>In Quid2, communication takes place between endpoints:</p>
+<ul>
+<li>bound to a specific identity</li>
+<li>addressed via a local or global addressing scheme</li>
+<li>connected via uni-directional typed channels</li>
+</ul>
+<h2 id="identity">Identity</h2>
+<p>Identity is defined as the provable control of an end point.</p>
+<p>A datatype that captures some of the many possible identities:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Identity</span> <span class="fu">=</span> <span class="dt">Anonymous</span>
+        <span class="fu">|</span> <span class="dt">OpenID</span> <span class="dt">String</span>
+        <span class="fu">|</span> <span class="dt">Email</span> <span class="dt">String</span>    
+        <span class="fu">|</span> <span class="dt">Facebook</span> <span class="dt">String</span> </code></pre>
+<h2 id="addressing-schemes">Addressing Schemes</h2>
+<p>As discussed previously, Quid2 doesn't impose a particular addressing system as different ones might be suitable for different network environments.</p>
+<p>For Internet wide services, the use of the following datatype is however advised:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Network</span> <span class="kw">where</span>
+
+<span class="co">-- An Internet endpoint address</span>
+<span class="kw">data</span> <span class="dt">Route</span> <span class="fu">=</span>
+  <span class="co">-- A route that goes through an intermediary (e.g. a proxy or a router)       </span>
+  <span class="dt">Via</span>   
+  <span class="dt">Route</span> <span class="co">-- care taker, gateway, </span>
+  <span class="dt">Route</span> <span class="co">-- final destination</span>
+           
+  <span class="fu">|</span> <span class="dt">Local</span> <span class="dt">String</span> <span class="co">-- Local address</span>
+
+  <span class="fu">|</span> <span class="dt">IP</span> <span class="dt">IPAddress</span> <span class="co">-- Internet address</span>
+
+<span class="kw">data</span> <span class="dt">IPAddress</span> <span class="fu">=</span> <span class="dt">IPAddress</span> <span class="dt">Host</span> <span class="dt">Port</span>   
+
+<span class="co">-- -- Either an IP or symbolic domain: e.g. &quot;127.0.0.1&quot; or &quot;example.org&quot; </span>
+<span class="kw">type</span> <span class="dt">Host</span> <span class="fu">=</span> <span class="dt">String</span> 
+
+<span class="co">-- e.g. 8080</span>
+<span class="kw">type</span> <span class="dt">Port</span> <span class="fu">=</span> <span class="dt">Word32</span> </code></pre>
+<p>Example:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- ring a bell at example.org, reached via quid2.org:8080 and local port 1234.</span>
+<span class="ot">ringABell ::</span> <span class="dt">IO</span> ()
+ringABell <span class="fu">=</span> <span class="fu">&lt;&lt;</span><span class="dt">Via</span> (<span class="dt">IP</span> <span class="st">&quot;quid2.org&quot;</span> <span class="dv">8080</span>)
+            (<span class="dt">Via</span> (<span class="dt">IP</span> <span class="st">&quot;example.org&quot;</span> <span class="dv">1234</span>) (<span class="dt">Local</span> <span class="st">&quot;bell&quot;</span>))<span class="fu">&gt;&gt;</span></code></pre>
+<h2 id="channels">Channels</h2>
+<p>A typed channel can transfer an unlimited number of values of its type.</p>
+<p>Contrary to usual network protocols, there is no need for extensive <em>in-protocol</em> negotiation of protocol parameters such as versions, format, compression, timeouts or quality of service.</p>
+<p>Assuming that every agent has a bootstrap channel of known type to start its interaction with the Quid2 system, further channel references should be obtained by functions that take care of all these aspects, escaping the limits of hard wired network protocols.</p>
+<p>Each channel has an associated identity (the identity of the peer with which we are communicating).</p>
+<p>Channels come in all kind of flavours, some examples follow.</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- A proxy used by web clients, on either HTTP or HTTPS</span>
+<span class="co">-- with optional compression.</span>
+<span class="kw">data</span> <span class="dt">HttpChannel</span> a framing <span class="fu">=</span> <span class="dt">HttpChannel</span> <span class="dt">IP</span> <span class="dt">Secure</span> framing
+
+<span class="kw">type</span> <span class="dt">Secure</span> <span class="fu">=</span> <span class="dt">Bool</span>
+
+<span class="co">-- Some examples of framings</span>
+<span class="kw">data</span> <span class="dt">WebRPC</span>
+
+<span class="kw">data</span> <span class="dt">NoCompression</span> <span class="fu">=</span> <span class="dt">NoCompression</span>
+<span class="kw">data</span> <span class="dt">GZIPCompression</span> <span class="fu">=</span> <span class="dt">GZIPCompression</span>
+<span class="kw">data</span> <span class="dt">SnappyCompression</span> <span class="fu">=</span> <span class="dt">SnappyCompression</span>
+
+<span class="co">-- A TCP channel</span>
+
+<span class="kw">data</span> <span class="dt">TCPChannel</span> a <span class="fu">=</span> <span class="dt">TCPChannel</span> <span class="dt">IP</span>
+
+<span class="co">-- A Local, in-process channel</span>
+<span class="kw">data</span> <span class="dt">LocalChannel</span> a <span class="fu">=</span> <span class="dt">LocalChannel</span> <span class="dt">Word64</span> <span class="co">-- channel identifier.</span>
+
+<span class="co">-- Some channels might be constrained to transfer only a certain type of values</span>
+<span class="co">-- This will only transfer strings coded according to Twitter&#39;s standards.</span>
+<span class="kw">data</span> <span class="dt">TwitterChannel</span> <span class="fu">=</span> <span class="dt">TwitterChannel</span> <span class="dt">String</span> <span class="co">-- channel identifier</span></code></pre>
+<p>Some example channels:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- A stream of IBM&#39;s market prices</span>
+<span class="ot">ibmQuotes ::</span> <span class="dt">TCPChannel</span> <span class="dt">Float32</span>
+ibmQuotes <span class="fu">=</span> <span class="dt">TCPChannel</span> (<span class="dt">IP</span> <span class="st">&quot;quotes.ibm.com&quot;</span> <span class="dv">1234</span>)
+
+<span class="co">-- A channel to a local Quid2-aware printer</span>
+<span class="co">-- that is able to interpret simple expressions.</span>
+<span class="ot">myPrinter ::</span> <span class="dt">TCPChannel</span> (<span class="dt">Expr</span> <span class="dt">String</span>)
+myPrinter <span class="fu">=</span> <span class="dt">TCPChannel</span> (<span class="dt">IP</span> <span class="st">&quot;192.168.1.4&quot;</span> <span class="dv">4444</span>)</code></pre>
+<!--
+All types of channels should satisfy the following requirements:
+
+It is possible but not required to specify authentication details/timeouts/preferred origin of value.
+<ul>
+  <li>Generic API, implementable on top of multiple transports: (local
+  channels,sockets,HTTP/HTTPS) with support for open connection to a
+  remote endpoint and transferring arbitrary? length bytestrings</li>
+  <li>Efficient communication (fast throughput, low latency)</li>
+   <li>Fair use?: large calls that transfer large quantity of data cannot
+  excessively slow down other calls (this should be taken care by
+  limiting the max size of messages, another reason to support holes)</li> 
+  <li>Reuse authentication provided by protocol.</li>
+</ul>
+
+<h3>Application/Route/Stream Level</h3>
+
+Requirements:
+<ul>
+  <li>Communication takes place between endpoints (uniquely addressable (by
+  IP/port/protocol)</li>
+  <li>Establish unique persistent (automatically created and
+  recreated?) communication links among different
+  nodes, that are shared by different calls/evaluations, on which
+  values of a certain kind (e.g. messages) flow freely in both directions.</li>
+  <li>Fair use: calls that transfer large quantity of data cannot
+  excessively slow down other calls (this should be taken care by
+  limiting the max size of messages, another reason to support holes)</li>
+  <li>Support for proxies that act on behalf of other clients</li>
+  <li>Upward compatibility: new servers can support
+  additional protocols</li>
+  <li>Downward compatibility: older clients can still get serviced</li>
+ </ul>
+
+Communication takes place between couples of EndPoints.
+
+An EndPoint is an Identity (why?) +Route, like an email:
+titto@kamus.it [|| An endpoint is just a Route]]
+
+Protocol implementation:
+http://www.pubnub.com/blog/what-is-webrtc/
+
+-->
+ 
+
+<h1 id="serialisation">Serialisation</h1>
+<p>Serialisation is the process by which a Quid2 value is encoded into a concrete binary representation, transferred over a network of stored locally, and then decoded to an equivalent value.</p>
+<p>The stages of the serialisation process:</p>
+<ul>
+<li><p>Canonicalisation: data value is converted into a canonical form.</p></li>
+<li><p>Encoding: the data value is encoded into a byte stream.</p></li>
+<li><p>Framing: data is framed according to the rules of the underlaying communication protocol (e.g. if data is to be stored locally is written to a file, or if transferred via HTTP is framed as an HTTP request). Data compression is an optional sub-stage of framing.</p></li>
+<li><p>Unframing: data is unframed (and possibly uncompressed).</p></li>
+<li><p>Decoding</p></li>
+</ul>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Network.Serialise</span> <span class="kw">where</span>
+
+<span class="co">-- A value of type `a`, encoded as specified by `encoding`.</span>
+<span class="kw">data</span> <span class="dt">Encoded</span> a encoding <span class="fu">=</span> <span class="dt">Encoded</span> [<span class="dt">Word8</span>]
+
+<span class="co">-- The canonical encoding.</span>
+<span class="kw">data</span> <span class="dt">CanonicalEncoding</span> <span class="fu">=</span> <span class="dt">CanonicalEncoding</span>
+
+<span class="kw">primitive</span><span class="ot"> encode ::</span> a <span class="ot">-&gt;</span> <span class="dt">Encoded</span> a <span class="dt">CanonicalEncoding</span>
+<span class="kw">primitive</span><span class="ot"> decode ::</span> <span class="dt">Encoded</span> a <span class="dt">CanonicalEncoding</span> <span class="ot">-&gt;</span> <span class="dt">Either</span> <span class="dt">String</span> a</code></pre>
+<p>Requirements:</p>
+<ul>
+<li><p>Support for all definable data types (including function types).</p></li>
+<li><p>Support for expressions and infinite data structures.</p></li>
+<li><p>Support for undefined values and errors.</p></li>
+<li><p>Support for basic data structures (tuples, lists and maps).</p></li>
+<li><p>Support for unsigned and signed numeric types.</p></li>
+<li><p>Support for infinite precision integers.</p></li>
+<li><p>Upward compatibility for unsigned and signed numeric types: numeric types of lower precision can be decoded as higher precision types (for example: an Int8 can be read as an Int16, however a Word8 cannot be read in as an Int16!).</p></li>
+<li><p>Support for IEEE 754 floats.</p></li>
+<li><p>Support for infinite precision floats.</p></li>
+<li><p>Easy and fast to decode.</p></li>
+<li><p>Compact data representation (competitive with existing standard such as rfc7049).</p></li>
+</ul>
+<p>Non requirements:</p>
+<ul>
+<li><p>Self-describing format: unnecessary as communication is expected to take place on typed channels(dynamically typed values can also be transferred using Typed values).</p></li>
+<li><p>Human readable (though is convenient to be able to read at least small unsigned integers)</p></li>
+<li>Encoding efficiency, not very important compared with decoding efficiency as:
+<ul>
+<li>For every encoding operation there are 1..N decoding operations.</li>
+<li>Static values can often be encoded offline and the result cached.</li>
+<li>The time needed to dynamically generated a value is likely to dominate the time taken to encode it.</li>
+</ul></li>
+<li><p>High compression: this is better provided by a separate compression stage.</p></li>
+</ul>
+<h2 id="canonical-implementation">Canonical Implementation</h2>
+<p>Encoding is byte-aligned: an encoding is a, possibly empty, sequence of bytes.</p>
+<p>An encoded value is not self-describing, we need to know its type to decode it.</p>
+<p>In this section, we will use the symbol -&gt; to indicated encoding.</p>
+<p>So 'a -&gt; [97]' means that the characted 'a' is encoded as the bytes sequence '[97]'.</p>
+<h2 id="coding-of-data-types">Coding of Data Types</h2>
+<p>As we have seen, data types are defined as a sum of constructors and every constructor is a named product of values.</p>
+<p>Every constructor is uniquely identified by its tag (that correspond to its 1-based position in the data type declaration).</p>
+<p>The tag has type <code>Word16</code> so a datatype can have up to 65535 constructors.</p>
+<p>A value created by a given constructor is encoded as the concatenation of its constructor tag and of the encodings of all its components.</p>
+<p>If the type has a single constructor, the tag is omitted.</p>
+<p>For example, the single constructor type () is encoded as an empty byte sequence:</p>
+<pre><code>() -&gt; [] </code></pre>
+<!--
+Consider the single constructor type (there are many single constructor types, the () and all tuples):
+
+```haskell
+data AnInt = AnInt Int32
+```
+-->
+
+<p>Consider the parametric type:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="fu">=</span> <span class="dt">Nothing</span> <span class="fu">|</span> <span class="dt">Just</span> a</code></pre>
+<p>It has two constructors: <code>Nothing</code> that has a tag of 1 and <code>Just</code> that has a tag of 2.</p>
+<p>The encoding of a <code>Nothing</code> value is simply its tag, the encoding of a <code>Just a</code> is its tag followed by the encoding of the 'a'.</p>
+<p>For example:</p>
+<pre><code>(Nothing::Maybe Char) -&gt; [1] </code></pre>
+<p>and:</p>
+<pre><code>(Just &#39;z&#39;::Maybe Char) -&gt; [2,122] </code></pre>
+<p>Data types that have no constructors obviously cannot be serialized:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Void</span></code></pre>
+<!--
+Coding of Functions
+
+???
+-->
+
+<h2 id="coding-of-tuples">Coding of Tuples</h2>
+<p>The encoding of a tuple is simply the concatenation of the encodings of its components.</p>
+<p>This is consistent with the view that a tuple is just a predefined data type with a single constructor, as for example:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> (,,) a b c <span class="fu">=</span> (,,) a b c</code></pre>
+<p>As example, given that:</p>
+<pre><code>&quot;abc&quot; -&gt; [4,97,98,99,1] </code></pre>
+<p>and:</p>
+<pre><code>(34::Word8) -&gt; [34] </code></pre>
+<p>and:</p>
+<pre><code>&#39;g&#39; -&gt; [103] </code></pre>
+<p>then:</p>
+<pre><code>(&quot;abc&quot;,34,&#39;g&#39;) -&gt; [4,97,98,99,1,34,103] </code></pre>
+<p>Tuples can of course be nested so:</p>
+<pre><code>(&#39;g&#39;,(&quot;abc&quot;,(34,&#39;g&#39;))) -&gt; [103,4,97,98,99,1,34,103] </code></pre>
+<h2>Coding of Lists</h2>
+<p>For the purpose of serialization, a list is considered equivalent to the data type:</p>
+<pre><code>data List a =  L0  
+             | L1 a        (List a)
+             | L2 a a      (List a)
+             | L3 a a a    (List a)
+             | ...
+             | L65534 a .. (List a)</code></pre>
+<p>For example:</p>
+<pre><code>([5,10,11]::[Word8]) -&gt; [4,5,10,11,1] </code></pre>
+<p>and:</p>
+<pre><code>([11,22,33]::[Word8]) -&gt; [4,11,22,33,1] </code></pre>
+<p>In other terms: lists are represented as a sequence of chunks of no more than 65535 elements each with the last chunk being of zero length.</p>
+<!-- Note the presence of the hole that adds an extra constructor.-->
+
+<h2 id="coding-of-chars">Coding of Chars</h2>
+<p>Characters are encoded in UTF-8.</p>
+<p>For example:</p>
+<pre><code>&#39;a&#39; -&gt; [97] </code></pre>
+<p>and:</p>
+<pre><code>&#39;\32654&#39; -&gt; [128,231,128,190,128,142] </code></pre>
+<h2 id="coding-of-numeric-types">Coding of Numeric Types</h2>
+<p>The primitive numeric types are:</p>
+<ul>
+<li>Fixed size, unsigned integers: <code>Word8</code> (8 bits), <code>Word16</code>, <code>Word32</code> and <code>Word64</code></li>
+<li>Fixed size, signed integers: <code>Int8</code>, <code>Int16</code>, <code>Int32</code> and <code>Int64</code></li>
+<li>Unlimited size, signed integers: <code>Integer</code></li>
+<li>Fixed size, signed floating point numbers: <code>Float16</code>, <code>Float32</code> and <code>Float64</code></li>
+</ul>
+<p>From these all kinds of numbers can be easily derived.</p>
+<p>{- * large floats (rationals, to represent precise decimal fractions like 1.1) - how to represent Infinity, -Infinity, or NaN ? (As there are many representations for NaN. If NaN is an allowed value, it must always be represented as 0xf97e00, from rfc7049).</p>
+<p>for testing: check test values at end of http://tools.ietf.org/html/rfc7049#section-2.3 -}</p>
+<!--
+Primitive values have no space for holes but this can be easily added by embedding the Word or Int in a data type:
+
+```haskell
+data HoledWord64 = Holed64 Word64
+```
+-->
+
+<h3 id="coding-of-words">Coding of Words</h3>
+<p>All unsigned integers (words) are encoded as varwords^[The varword encoding is a variation of the <a href="https://developers.google.com/protocol-buffers/docs/encoding#varints">varint</a> representation used in Google's Protocol Buffers.</p>
+<p>A varint is a sequence of bytes where every byte except the last one has the most significant bit set (the msb signals that there are more bytes in the sequence).</p>
+<p>Varword is basically the same but with all the signalling bits moved into an initial prefix.</p>
+<p>This should have two (small) advantages:</p>
+<ul>
+<li><p>as the word is already in the correct sequence (no extraneous msbs), less operations are required to decode it</p></li>
+<li><p>in case of very long words, we end up with an initial prefix of 0xFF bytes that can be easily compressed away</p></li>
+</ul>
+<p>The disadvantage is a more complex encoder. ]</p>
+<p>A varword is a sequence of bytes composed by:</p>
+<ul>
+<li>A prefix made of:
+<ul>
+<li><p>A sequence of 1 bits of length equal to the number of bytes to read in after the one containing the last bit of the prefix</p></li>
+<li><p>A 0 bit</p></li>
+</ul></li>
+<li>The word as:
+<ul>
+<li>Zero or more padding 0 bits</li>
+<li>The significant bits of the word in network order (most significant bit first) with the last bit of the word stored in the lsb of the last byte in the sequence</li>
+</ul></li>
+</ul>
+<p>Some examples:</p>
+<table>
+<caption>Varword Encoding of Unsigned Integers</caption>
+<col width="20%" />
+<col width="28%" />
+<thead>
+<tr class="header">
+<th align="left">Number</th>
+<th align="left">Encoding (<strong>prefix</strong>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><p>0</p></td>
+<td align="left"><p><strong>0</strong>0000000</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>1</p></td>
+<td align="left"><p><strong>0</strong>0000001</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>127</p></td>
+<td align="left"><p><strong>0</strong>1111111</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>128</p></td>
+<td align="left"><p><strong>10</strong>000000 10000000</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>255</p></td>
+<td align="left"><p><strong>10</strong>000000 11111111</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>256</p></td>
+<td align="left"><p><strong>10</strong>000001 00000000</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>16383</p></td>
+<td align="left"><p><strong>10</strong>111111 11111111</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>16384</p></td>
+<td align="left"><p><strong>110</strong>00000 01000000 00000000</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>7205759403792793</p></td>
+<td align="left"><p>5 |<strong>11111110</strong> 11111111(*7)</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>7205759403792793</p></td>
+<td align="left"><p>6 | <strong>11111111 0</strong>1111111 11111111(*7)</p></td>
+</tr>
+</tbody>
+</table>
+<p>BUG: there is no valid encoding for</p>
+<p>72057594037927936 <strong>11111111 0</strong>0000001 0(<em>7) wrong as there are 7 after prefix <strong>11111110</strong> 00000001 0(</em>7) wrong as there are 8 after prefix</p>
+<table>
+<caption>Coding of Signed Integers</caption>
+<col width="20%" />
+<col width="28%" />
+<thead>
+<tr class="header">
+<th align="left">Number</th>
+<th align="left">Encoding (<strong>prefix</strong>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><p>-2</p></td>
+<td align="left"><p><strong>01</strong>111110</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>-1</p></td>
+<td align="left"><p><strong>01</strong>111111</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>0</p></td>
+<td align="left"><p><strong>00</strong>000000</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>1</p></td>
+<td align="left"><p><strong>00</strong>000001</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>63</p></td>
+<td align="left"><p><strong>00</strong>111111</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p>64</p></td>
+<td align="left"><p><strong>100</strong>00000 01111111</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p>128</p></td>
+<td align="left"><p><strong>100</strong>00001 00000000</p></td>
+</tr>
+</tbody>
+</table>
+<!--
+All integers are encoded as [Base 128 Varint](https://developers.google.com/protocol-buffers/docs/encoding#varints).
+
+A varint is a sequence of bytes, where every byte except the last one has the most significant bit (msb) set. 
+
+The number binary representation is split in groups of 7 bits, with every group being stored in the lower 7 bits of each byte, least significant group first.
+-->
+
+<p>The encoder should use the minimum sequence of bytes necessary to code the number, the decoder however needs to be able to handle an unlimited number of leading zeros.</p>
+<p>Note that this implies that equivalent unsigned numbers, even if of different types, are encoded in the same way: <code>3::Word8</code> is encoded exactly as <code>3::Word64</code> (provided obviously that the number fits in the given numeric type).</p>
+<p>{- The coding is optimised for small unsigned integers, that are widely used, particularly as constructor tags, and works as follows:</p>
+<ul>
+<li><code>Word</code>s have variable length representations</li>
+<li>In the first byte in the sequence:
+<ul>
+<li>the values between <code>0 and 256 minus the Word length in bytes</code> are used to code the corresponding integer</li>
+<li>the other values indicate the number of bytes that follow where <code>number of bytes = 257 - value</code></li>
+</ul></li>
+<li><code>Word</code>s (unsigned integers) are written in big-endian (network) order.</li>
+</ul>
+<p>Major types 0 and 1 are designed in such a way that they can be encoded in C from a signed integer without actually doing an if-then- else for positive/negative (Figure 2). This uses the fact that (-1-n), the transformation for major type 1, is the same as ~n (bitwise complement) in C unsigned arithmetic; ~n can then be expressed as (-1)^n for the negative case, while 0^n leaves n unchanged for non-negative. The sign of a number can be converted to -1 for negative and 0 for non-negative (0 or positive) by arithmetic- shifting the number by one bit less than the bit length of the number (for example, by 63 for 64-bit numbers).</p>
+<p>void encode_sint(int64_t n) { uint64t ui = n &gt;&gt; 63; // extend sign to whole length mt = ui &amp; 0x20; // extract major type ui ^= n; // complement negatives if (ui &lt; 24) <em>p++ = mt + ui; else if (ui &lt; 256) { </em>p++ = mt + 24; *p++ = ui; } else</p>
+<p>0..127==2^7-1 0XXXXXXX 128..16383 10XXXXXX XXXXXXXX 16384.. 110XXXXX XXXXXXXX XXXXXXXX XXXXXXXX</p>
+<p>Start with a compact count of bytes followed by the actual complement-2 number. This can be implemented efficiently as a jump table? No, it requires a number of left shifts.</p>
+<p>Count: Prefix | Num Bytes Overhead 0 1 1/7 1.00 2 3/16 1.01 3 3/24 1.10 4 3/32 111.000 5<br />111.001 6 111.010 7 111.011 8 111.100 9 111.110 10 111.111.0000 11 ...</p>
+<p>The encoding is composed by:</p>
+<p>A Prefix composed by: * 0 if the last byte of the prefix also contains the first byte of the number | 1 otherwise * (num of bytes used by number-1) 1s * 0</p>
+<p>The number in network order, with the first byte, if indicated, stored in the last byte of the prefix.</p>
+<p>0 00.000000 1 00.000001 63 00.111111 64 110.00000 01000000 .. 127 110.00000 11111111 128 010.00001 00000000 4095 010.11111 00000000</p>
+<p>-128 0.100000 -3 0.1111100 -2 0.1111101 -1 0.1111111</p>
+<p>Plus: Or: The number is already in correct network order (8086/ARM is however LE order), no shifts required (but negative numbers need to have their sign extended).</p>
+<p>Minus: An additional bit lost.</p>
+<p>The encoding is composed by:</p>
+<p>A Prefix composed by: * (num of bytes used by number-1) 1s if the number is &gt;0 |0s otherwise * A number of 0s if the number is &gt;0 |1s otherwise to fill the space up to the beginning of the number</p>
+<ul>
+<li>The number in network order, with the first byte, if it fits, stored in the last byte of the prefix.</li>
+</ul>
+<p>-2 1111111.0 -1 11111111. 0 00000000. 1 0000000.1 127 0.1111111 128 1000000.1 00000000</p>
+<p>00000000 1 1/8 1.0 2 1/8 11.0 3 1/8 111.0 4 1/8<br />1111.0 5 1/8 11111.0 6 1/8 111111.0 7 1/8 11111110 8 1/8 11111111 9 1/8</p>
+<p>This also makes for a nice jump table. And it should be really easy to compress sequences of 1111111s so it also works for really long numbers so the real overhead is almost nothing.</p>
+<p>Another alternative: Always optimise for the specific type, so Word8 is just a Word8, Word16 is .. a varint.</p>
+<p>As soon as we know the number of bytes we can just copy them over and mask them to remove the prefix.</p>
+<p>Or recursive numbytes we calculate how many bits are required to code the number. we write this as: num_bits ++ num if num_bits is &lt;=2 recursively written</p>
+<p>The first two bits mean: 00 = 6 bits 01 = 8+6 bits 10 = 2<em>8+6 bits 11 = read next 4 bits as number of bits 11.0000 = 3</em></p>
+<p>Or equivalently MSB encoding: higher bit is used as has-next-byte flag. -}</p>
+<h3 id="coding-of-signed-integers">Coding of Signed Integers</h3>
+<p>All signed integers, including infinite precision <code>Integer</code>s, are converted to unsigned integers using <a href="https://developers.google.com/protocol-buffers/docs/encoding#types">Zig-Zag encoding</a> and then coded.</p>
+<p>&lt;-- * http://tools.ietf.org/html/rfc7049 * prefix with sign bit -- one extra byte per integers ++ (ok for infinite ints) unsigned starting with zero -1 minus the encoded unsigned integer. For example, the integer -500 would be 0b001_11001 (major type 1, additional information 25) followed by the two bytes 0x01f3, which is 499 in decimal * map -max..+max to 0..2*max by adding max: http://en.wikipedia.org/wiki/Offset-binary -- not ok for infinite ints</p>
+<p><code>Int</code>s are converted to their equivalent two's complement <code>Word</code> and then coded. --&gt;</p>
+<p>For example:</p>
+<pre><code>(-1::Int8) -&gt; [1] </code></pre>
+<pre><code>(3::Int8) -&gt; [6] </code></pre>
+<pre><code>(-2::Int16) -&gt; [3] </code></pre>
+<pre><code>(5::Int16) -&gt; [10] </code></pre>
+<pre><code>(-5::Int32) -&gt; [9] </code></pre>
+<pre><code>(11::Int32) -&gt; [22] </code></pre>
+<pre><code>(-17283923::Int64) -&gt; [226,15,118,165] </code></pre>
+<pre><code>(1567823::Int64) -&gt; [224,47,216,158] </code></pre>
+<pre><code>(-2::Integer) -&gt; [3] </code></pre>
+<pre><code>(5::Integer) -&gt; [10] </code></pre>
+<pre><code>(-17283923::Integer) -&gt; [226,15,118,165] </code></pre>
+<pre><code>(1567823::Integer) -&gt; [224,47,216,158] </code></pre>
+<pre><code>(829374657329284628329102323297256347::Integer) -&gt; [255,255,1,63,118,167,198,59,48,174,174,200,20,180,93,103,7,54] </code></pre>
+<!--
+### Coding of Integers
+
+Integers are coded as if they were defined as follows:
+
+```haskell
+data Integer = Integer Sign LongWord
+
+data Sign = Positive | Negative
+```
+
+Where LongWord is a 255 bytes long Word, coded according to the general Word serialisation scheme previously illustrated.
+
+This supports the coding of integers with up to 611 decimal digits.
+-->
+
+<h3 id="coding-of-floats">Coding of Floats</h3>
+<p><a href="http://en.wikipedia.org/wiki/Half-precision_floating-point_format">Float16</a>, <a href="http://en.wikipedia.org/wiki/Binary32">Float32</a> and <a href="http://en.wikipedia.org/wiki/Binary64">Float64</a> numbers are coded as standard big endian IEEE754 floats.</p>
+<h3 id="coding-of-large-and-precise-floats">Coding of Large and Precise Floats</h3>
+<p>When Float64 precision is not enough or when there is a need of preserving decimal fractions such as 1.1 that cannot be represented exactly in binary floating point the <code>Rational</code> data type should be used:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Math</span> <span class="kw">where</span>
+
+<span class="kw">import </span><span class="dt">Math.Integer</span>
+
+<span class="kw">data</span> <span class="dt">Rational</span> <span class="fu">=</span> <span class="dt">Rational</span>
+                <span class="dt">Integer</span> <span class="co">-- Numerator</span>
+                <span class="dt">Integer</span> <span class="co">-- Denominator</span></code></pre>
+<p>Example: <code>1.1</code> is expressed as <code>Rational 11 10</code>.</p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Quid2 is read as <em>quidquid</em>, a Latin word meaning <em>anything</em> or <em>whatever</em>. The name suggests that Quid2 is meant to be an open and universal system. Why a Latin name? Obviously because <em>quidquid Latine dictum sit altum videtur</em>.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>An arrow indicates that some information is being transferred from one agent to another. The first number in the arrow's label indicates the time at which the transfer takes place. A dotted line indicates a slow link, a full line a fast one.<a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p>The idea that one might design a system as an unwieldy set of <em>ad-hoc</em> functions sounds absolutely preposterous till one realises that this is exactly how 99% of Web sites are made.<a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p>A higher order function is a function that takes as inputs and/or returns other functions.<a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p>Technically, it is a monadic bind restricted to IO.<a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p>An intelligent coordinator can also provide some automatic optimisations. As we mentioned, <code>convert</code> is a pure function. It's also probably expensive in terms of time and network bandwidth. An intelligent coordinator would cache the result of this operation and reuse it if the same conversion is requested again, so avoiding to contact the <code>Converter</code> at all.<a href="#fnref6">↩</a></p></li>
+<li id="fn7"><p>As many other aspects of this example application, this is an oversimplification. Definitions will usually be stored in separate repositories so that they can be easily shared.<a href="#fnref7">↩</a></p></li>
+<li id="fn8"><p>A type that can be determined by a static analysis of the expression.<a href="#fnref8">↩</a></p></li>
+<li id="fn9"><p>It is not clear if such a surface syntax is needed at all, given that Quid2 definitions will probably be usually automatically derived from definitions in other languages. Quid2 abstract syntax is however very precisely defined in Quid2 itself.<a href="#fnref9">↩</a></p></li>
+<li id="fn10"><p>Something to ponder upon on a rainy day: if we could capture the state of the world in a value, all impurity would disappear.<a href="#fnref10">↩</a></p></li>
+<li id="fn11"><p>Alternatively, you can imagine that it contains <em>ab initio</em> all possible datatypes.<a href="#fnref11">↩</a></p></li>
+</ol>
+</div>

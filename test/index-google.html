@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+  <head>	  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>    
+    
+    <link rel="stylesheet" href="closure-library-read-only/closure/goog/demos/tree/css/tree.css"/>
+    <link rel="stylesheet" type="text/css" href="css/doc.css"/>
+    
+    <style class="text/css">
+      
+      /* NOTE: A bug in Safari 3 requires these css definitions to be in here.
+       Do not move these to a seperate file without testing safari 3! */
+
+    /* These are recommended styles for the default splitpane */
+    .goog-splitpane {
+      height: 100%;
+      width: 100%;
+    }
+
+    .goog-splitpane-handle {
+      border-left: 1px solid gray;
+      border-right: 1px solid gray;
+      background: #ccc;
+      position: absolute;
+    }
+
+    .goog-splitpane-handle-horizontal {
+      cursor: col-resize;
+    }
+
+    .goog-splitpane-handle-vertical {
+      cursor: row-resize;
+    }
+
+    .goog-splitpane-first-container,
+    .goog-splitpane-second-container {
+      border: 5px solid black;
+      overflow: auto;
+      position: absolute;
+    }
+    </style>
+
+    <script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script> 
+
+    <script src="closure-library-read-only/closure/goog/base.js"></script>
+    <script>
+      goog.require('goog.dom');
+      goog.require('goog.events');
+      goog.require('goog.ui.Component');
+      goog.require('goog.ui.tree.TreeControl');
+      goog.require('goog.ui.SplitPane');
+      goog.require('goog.ui.SplitPane.Orientation');
+    </script>
+
+    <script type="text/javascript" src="/CodeMirror-0.65/js/codemirror.js"></script>            
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.js"></script>        
+    <script>
+      jQuery.noConflict();
+    </script>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7/jquery-ui.min.js"></script>
+
+    <script type="text/javascript" src="http://jslib.quicquid.org/jquery.json.min.js"></script>
+
+    <script type="text/javascript" src="js/jquery.channel.js"></script>
+
+    <script type="text/javascript" src="js/quid2.js"></script>
+
+    <script type="text/javascript" src="js/ring.js"></script>
+  
+  </head>
+
+  <body>
+    
+    <div class='goog-splitpane' id='mainFrame'>
+      
+      <div class='goog-splitpane-first-container'>
+        <p><button id="restart" type="button">Restart Me!</button></p>
+	<div id="treeArea" style="width: 400px;"/>
+      </div>
+      
+      <div class='goog-splitpane-second-container'>
+	<textarea id="editorArea"></textarea>
+	<p>Editor commands:</p>
+	<dl>
+	  <dt>Tab</dt><dd>Re-indent the current selection (or the current line when nothing is selected)</dd>
+	  <dt>Enter</dt><dd>Insert a line break and automatically indent the new line</dd>
+	  <dt>Ctrl-Enter<dd>Re-colour</dd></dt>
+	  <dt>Ctrl-z (Ctrl-Backspace on Safari)<dd>Undo</dd></dt>
+	  <dt>Ctrl-y<dd>Redo</dd></dt>
+	</dl>
+	Powered by <a href=http://marijn.haverbeke.nl/codemirror/manual.html>CodeMirror</a>.    
+      </div>
+      
+      <div class='goog-splitpane-handle'></div>
+      
+    </div>
+    
+  </body>
+</html>
+
+
+

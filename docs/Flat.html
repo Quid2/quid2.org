@@ -1,0 +1,257 @@
+<h2 id="what-is-flat">What is Flat?</h2>
+<p>Flat is a minimalist, principled and efficient binary data format suitable for data exchange and storage.</p>
+<h2 id="design-goals">Design Goals</h2>
+<p>The goal of a universal data format is to operate as a bridge across:</p>
+<ul>
+<li><p>different ways of modelling data (databases, object oriented, functional or imperative languages)</p></li>
+<li><p>processing systems (ranging from nanosystems to mainframes)</p></li>
+<li><p>time (long term storage and retrieval of data)</p></li>
+</ul>
+<p>To be able to cross these barriers, it has to be based on the simplest possible abstractions and free from arbitrary and limiting decisions about predefined data structures or primitive types.</p>
+<p>Briefly stated, it has to be discovered, not invented.</p>
+<h2 id="design-non-goals">Design Non-Goals</h2>
+<p>Some data formats embed in their codings semantic information (for example <a href="http://www.json.org/">JSON</a> states the names of the data type and of the fields being represented in every value, <a href="http://cbor.io/">CBOR</a> has type tags) or provide non essential features such as a versioning, redundancy, error-correction or compression.</p>
+<p>The principled approach taken by Flat is that all these additional features can be provided much more cleanly, flexibly and effectively by additional conventions layered on top of the binary data format.</p>
+<h2 id="a-principled-data-model">A Principled Data Model</h2>
+<p>There are two concepts that necessary underlay any conceivable data modelling formalism:</p>
+<ul>
+<li><p>Choice: information, in its simplest form, is a choice among different alternatives; the basic unit of information, the bit, corresponds to the simplest possible choice, that between two different values.</p></li>
+<li><p>Sequencing or Aggregation: complex data types are built aggregating simpler data types.</p></li>
+</ul>
+<p>From these two principles we can directly derive a simple but expressive data modelling framework.</p>
+<p>Our starting point is the binary choice operator <code>|</code>.</p>
+<p>Using it, a bit can be defined as (Figure 1):</p>
+<p><code>Bit ≡ Zero | One</code></p>
+<p>Meaning: &quot;the data type Bit is defined (≡) as either (|) a Zero or a One.&quot;</p>
+<div class="figure">
+<embed src="flat/bit.pdf" height="151" />
+<p class="caption">Bit</p>
+</div>
+<p>The binary choice operator | corresponds to a minimal binary tree.</p>
+<p>Trees with more than one node can be used to represent choice across any number of values.</p>
+<p>For the tree to be as compact as possible, we want it to be balanced.</p>
+<p>The only arbitrary choice is if, in case of an odd number of choices, the tree should be left or right-size heavier.</p>
+<p>If we opt for the second alternative <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>, the traditional five Chinese directions can be represented as (Figure 2):</p>
+<p><code>Direction ≡ (North | South) | (Center | (East | West))</code></p>
+<div class="figure">
+<embed src="flat/directions.pdf" height="188" />
+<p class="caption">Direction</p>
+</div>
+<p>Note how the 5 values of <code>Direction</code> are split in groups of 2 and 3 (balanced and right-heavy) and the right group of 3 constructors is split in groups of 1 and 2 (again balanced and right-heavy).</p>
+<p>Simple types that are usually introduced as primitives, such as the unsigned short integer, can be explicitly defined by stating their possible values:</p>
+<p><code>Word8 = (..((Z | N1) | (N2 | N3)) .. | .. ((N252 | N253) | (N254 | N255))..)</code></p>
+<p>So far values have consisted in unique labels (Zero, One, N255..). To create more complex data types, we allow the label (or constructor) to be followed by a (possibly empty) sequence of values.</p>
+<p>As an example consider a data type that conveys the concept of an optional Bit:</p>
+<pre><code>-- An Optional Bit is either empty (None) or carries a value (Some Bit):
+Optional Bit ≡ None | Some Bit</code></pre>
+<p>The constructor's fields can also be of the same type of the data type being defined, enabling the definition of recursive data types, such as a list of booleans (Figure 3):</p>
+<pre><code>-- A List Bool is either a 0-length list (Nil)
+-- or a Cons value with two fields, the first pointing to a Bool
+-- and the second recursively to the List Bool itself.
+List Bool ≡ Nil | Cons Bool (List Bool)
+
+-- A boolean is either False or True.
+Bool ≡ False | True`</code></pre>
+<div class="figure">
+<embed src="flat/img-list-bool.pdf" height="170" />
+<p class="caption">List of Booleans</p>
+</div>
+<p>Mutually recursive definitions are also possible (Figure 4):</p>
+<pre><code>-- A Forest is a list of Trees
+Forest Bool ≡ Nil | Cons (Tree Bool) (Forest Bool)
+
+-- A Tree is either empty or is a value followed by a Forest
+Tree   Bool ≡ Empty | Node Bool (Forest Bool)</code></pre>
+<div class="figure">
+<embed src="flat/tree-bool.pdf" height="245" />
+<p class="caption">Forest and Tree of Booleans</p>
+</div>
+<p>As well as definitionally infinite data types (Figure 5):</p>
+<p><code>Stream Bool ≡ Stream Bool (Stream Bool)</code></p>
+<div class="figure">
+<embed src="flat/img-stream-bool.pdf" height="151" />
+<p class="caption">Stream of Booleans</p>
+</div>
+<p>The building of compound values from simpler ones can be seen as the application of a binary sequencing or coupling operator <code>(,)</code>.</p>
+<p>For example, the value <code>Cons Bool (List Bool)</code> is equivalent to the labelled binary tuple <code>Cons (Bool,List Bool)</code>.</p>
+<p>Values with any number of fields can be built by nesting up binary tuples as in <code>(A,(B,(C,D)))</code>.</p>
+<p>In conclusion, using two simple operators, a binary choice operator <code>|</code> and an (implicit) sequence operator <code>(,)</code> we have built a powerful data modelling formalism that can be used as a rosetta stone across any data processing system.</p>
+<p>This formalism is:</p>
+<ul>
+<li><p>Principled: does not rely on an arbitrary selection of primitive types or data structures selected according to a designer's whim.</p></li>
+<li><p>Explicit: the structure of every data type, from a simple bit to the most complex data model, can be traced down to a combination of choice and sequence operators.</p></li>
+<li><p>Expressive: it captures the essential principles of data modelling and can represent any kind of data structure (enumerations, finite types, recursive and mutually recursive types, infinite types)</p></li>
+</ul>
+<p>In a more developed form, this formalism is known as the <a href="https://en.wikipedia.org/wiki/Algebraic_data_type">algebraic data type</a>. Because of its simplicity and flexibility, it has been adapted natively by an increasing number of programming languages.</p>
+<p>Flat does not requires the full expressive power of algebraic types. An algebraic data type definition includes three aspects:</p>
+<ul>
+<li><p>syntactical: the 'shape' of a data type, its basic structure as a composition of | and (,) operators and references to other data types</p></li>
+<li><p>semantic: the 'meaning' of the data type, suggested by the names of the data type and its constructors</p></li>
+<li><p>type-theoretic: in a programming language, data types are defined in the context of a type system that can impose constrains on the set of acceptable values of and use parametricity and other mechanisms to make definitions generic and composable.</p></li>
+</ul>
+<p>Flat only captures the syntactical/structural of a data type, it does not attempt to capture semantic information as this is the job of a higher level layer.</p>
+<p>The canonical syntactical structure of a data type can be easily derived:</p>
+<ul>
+<li><p>the data type name is ignored</p></li>
+<li><p>The left and right branches of the choice | operator are respectively marked with 0 and 1.</p></li>
+<li><p>the constructors' names are substituted by the nested sequence of bits obtained by joining left-to-right the markers on the path from the data type to the constructor, followed by the sequences corresponding to the values in the constructors' fields.</p></li>
+</ul>
+<p>Figure 6 shows the canonical syntactical structures of the simple data types discussed so far.</p>
+<p>It shows how <code>Zero</code>, <code>False</code> and any left value of a two valued type has a canonical name of [0].</p>
+<p>The Unit type on the left, is the single valued type:</p>
+<p><code>Unit ≡ Unit</code></p>
+<p>The only value of Unit does not carry any additional information with respect to its type, there is no choice, its canonical name is therefore the empty sequence '[]'.</p>
+<div class="figure">
+<embed src="flat/canonical.pdf" height="245" />
+<p class="caption">Simple Canonical Types</p>
+</div>
+<p>Compound data type work in the same way, with fields' sequences nested into the constructors' ones (Figure 7).</p>
+<div class="figure">
+<embed src="flat/canonical-recursive.pdf" height="207" />
+<p class="caption">Compound Canonical Types</p>
+</div>
+<p>For example, the value <code>Cons False (Cons True Nil)</code> maps to <code>[1,[0],[1,[1],0]]</code>.</p>
+<p>Note how the <code>Stream</code> constructor, being single, maps to an empty sequence so that a Stream of True values maps to <code>[[1],[[1],[[1]..]]]</code>.</p>
+<p>The final binary encoding is obtained by flattening the canonical names (Tables 1-3).</p>
+<table>
+<caption>Unit values and codes</caption>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Unit</td>
+<td align="left">&lt;&gt;</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>Direction values and codes</caption>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">North</td>
+<td align="left">&lt;00&gt;</td>
+</tr>
+<tr class="even">
+<td align="left">South</td>
+<td align="left">&lt;01&gt;</td>
+</tr>
+<tr class="odd">
+<td align="left">Center</td>
+<td align="left">&lt;10&gt;</td>
+</tr>
+<tr class="even">
+<td align="left">East</td>
+<td align="left">&lt;110&gt;</td>
+</tr>
+<tr class="odd">
+<td align="left">West</td>
+<td align="left">&lt;111&gt;</td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption>List values and codes</caption>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Nil</td>
+<td align="left">&lt;0&gt;</td>
+</tr>
+<tr class="even">
+<td align="left">Cons True Nil</td>
+<td align="left">&lt;110&gt;</td>
+</tr>
+<tr class="odd">
+<td align="left">Cons False (Cons True Nil)</td>
+<td align="left">&lt;10110&gt;</td>
+</tr>
+</tbody>
+</table>
+<p>The Flat encoding is:</p>
+<ul>
+<li><p>Optimal: takes as little space as possible, assuming that all encoded sequences are equi-probable.</p></li>
+<li><p>Complete: there are no erroneous codes, if the decoder asks for one more bit it can always interpret it.</p></li>
+</ul>
+<p>Conveniently, in the common case of enumerations with a number of values equal to a power of two (e.g. <code>Word8</code>), the encoding is equivalent to the usual unsigned encoding.</p>
+<h2 id="framing-and-byte-alignment">Framing and Byte-Alignment</h2>
+<p>Flat is a bit-oriented binary format.</p>
+<p>This is a direct consequence of its principled stance, and has two advantages:</p>
+<ul>
+<li><p>removes any arbitrary dependency on architecture-specific word size</p></li>
+<li><p>provides the finest possible control on the binary encoding</p></li>
+</ul>
+<p>When data is stored or transferred, however, we need to take account of the fact that information systems are word oriented.</p>
+<p>It is therefore necessary for functional and performance reasons, to byte or word-align data.</p>
+<p>Following Flat general approach, this can be done simply and explicitly by embedding the value into an appropriate wrapper.</p>
+<p>To store or more generally to transfer it to another system, a value should be post-aligned so that it fills into the required word size:</p>
+<pre><code>-- A PostAligned value (&quot;a&quot; is a parameter standing for any possible type)
+PostAligned a ≡ PreAligned a Filler
+
+-- A meaningless sequence of 0 bits terminated with a 1 bit.
+Filler ≡ FillerBit Filler | FillerEnd</code></pre>
+<p>For example, a boolean value 'True' that encodes as <code>&lt;1&gt;</code> would be embedded into a 'PostAligned Bool'.</p>
+<p>An intelligent encoder, aware of the word size required by the destination system, can modify the size of the Filler to align the data.</p>
+<p>For a byte-oriented device, it would code it as <code>&lt;10000001&gt;</code> where '&lt;1&gt;' is the encoding of 'True' and <code>&lt;0000001&gt;</code> is the Filler.</p>
+<p>Similarly, to optimise the transfer of large binary sequences, a value can be embedded into <code>PreAligned</code>:</p>
+<pre><code>-- A PreAligned value (&quot;a&quot; is a parameter standing for any possible type)
+PreAligned a ≡ PreAligned Filler a</code></pre>
+<p>A smart decoder will take advantage of the fact that data is aligned, using fast byte-aligned operations to read in the data.</p>
+<p>Naive decoders that know nothing about Filler, will still work correctly as 'PostAligned' and 'Filler' are just normal data types subject to the usual encoding.</p>
+<h2 id="normative-definitions">Normative Definitions</h2>
+<p>A binary data format is an isomorphism between data values and binary sequences.</p>
+<p>Every value has a data type.</p>
+<p>A data type consists in a balanced, right-heavy, binary tree whose leaves are values and whose internal nodes have a left and right arrow, respectively marked with a <code>0</code> and a <code>1</code> bit.</p>
+<p>A value is a (possibly empty) sequence of fields each of which points to a data type.</p>
+<p>The binary sequence corresponding to a value is obtained by joining left-to-right the markers on the path from the root of the data type to the value, followed by the sequences corresponding to the values in the values' fields.</p>
+<h2 id="about-this-document">About This Document</h2>
+<p>The only normative part of this spec is <a href="#normative-definitions">Normative Definitions</a>, the rest is narrative.</p>
+<table>
+<caption>Document Metadata.</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Status</td>
+<td align="left">Draft</td>
+</tr>
+<tr class="even">
+<td align="left">License</td>
+<td align="left">GPLv3 (http://www.gnu.org/licenses/gpl-3.0.en.html)</td>
+</tr>
+<tr class="odd">
+<td align="left">First Published</td>
+<td align="left">2016-05-27</td>
+</tr>
+<tr class="even">
+<td align="left">Last Revision</td>
+<td align="left">2016-05-27</td>
+</tr>
+<tr class="odd">
+<td align="left">Reference URL</td>
+<td align="left">http://quid2.org/docs/Flat.pdf</td>
+</tr>
+<tr class="even">
+<td align="left">Author</td>
+<td align="left">Pasqualino &quot;Titto&quot; Assini (tittoassini@gmail.com)</td>
+</tr>
+</tbody>
+</table>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>This choice is arbitrary, but inconsequential, as the two options are completely equivalent.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>

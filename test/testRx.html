@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  
+  <head>    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <title>RX</title>
+
+ <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>            
+
+ <script type="text/javascript" src="../js/rxjs2/rx.min.js"></script>
+ <script type="text/javascript" src="../js/rxjs2/rx.jQuery.js"></script>
+
+  <script type="text/javascript">
+    var answer = Rx.Observable.returnValue(42);
+    
+    var observer = Rx.Observer.create(
+    function (x) {
+     document.write("The answer is " + x);
+    }
+    );
+    //var handle = answer.subscribe(observer);    
+
+    $(document).ready(function () {
+
+    $(document).toObservable("mousemove").subscribe(function (event) {
+    // A position tracking mechanism, updating a paragraph called “content”
+      $("#content").text("X: " + event.pageX + " Y: " + event.pageY);
+    });
+
+    });
+
+  </script>
+
+</head>
+
+<body>
+<p id="content" />
+</body>
+</html>

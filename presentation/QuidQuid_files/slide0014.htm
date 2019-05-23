@@ -1,0 +1,245 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:p="urn:schemas-microsoft-com:office:powerpoint"
+xmlns:oa="urn:schemas-microsoft-com:office:activation"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=PowerPoint.Slide>
+<meta name=Generator content="Microsoft PowerPoint 11">
+<link id=Main-File rel=Main-File href="../QuidQuid.htm">
+<link rel=Preview href=preview.wmf>
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+p\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+v\:textbox {display:none;}
+</style>
+<![endif]-->
+<title>QuidQuid: using Haskell to turn the Internet on its head.</title>
+<meta name=Description content="10/09/2010: Doing It in Haskell">
+<link rel=Stylesheet href="master23_stylesheet.css">
+<!--[if gte IE 5]>
+<object id=MSOANIM classid="CLSID:A4639D2F-774E-11D3-A490-00C04F6843FB"></object>
+<object id=MSOTIME classid="CLSID:A4639D29-774E-11D3-A490-00C04F6843FB"></object>
+<![endif]-->
+<![if !ppt]>
+<style media=print>
+<!--.sld
+	{left:0px !important;
+	width:6.0in !important;
+	height:4.5in !important;
+	font-size:107% !important;}
+-->
+</style>
+<style>
+<!--
+oa\:* { BEHAVIOR: url(#MSOANIM#ANIM) url(#MSOTIME#TIME) }
+oa\:par,oa\:seq,oa\:iterate { BEHAVIOR:url(#MSOTIME) }
+oa\:video,oa\:audio {BEHAVIOR:url(#MSOTIME) url(#MSOTIME#MEDIA) }
+-->
+</style>
+<script src=script.js></script><script><!--
+if( !IsNts() ) Redirect( "PPTSld" );
+//--></script><script><!--
+g_animItemsToHide=new Array("_x0000_s50180_AllText","_x0000_s50180");
+
+//--></script><!--[if vml]><script>g_vml = 1;
+</script><![endif]--><![endif]><o:shapelayout v:ext="edit">
+ <o:idmap v:ext="edit" data="49"/>
+ <o:rules v:ext="edit">
+  <o:r id="V:Rule2" type="callout" idref="#_x0000_s50180"/>
+ </o:rules>
+</o:shapelayout>
+</head>
+
+<body lang=EN-US style='margin:0px;background-color:black'
+onclick="DocumentOnClick()" onresize="_RSW()" onload="LoadSld()"
+onkeypress="_KPH()" oa:clockstart="onstart">
+
+<div id=SlideObj class=sld style='position:absolute;top:0px;left:0px;
+width:534px;height:400px;font-size:16px;background-color:#003399;clip:rect(0%, 101%, 101%, 0%);
+visibility:hidden'><p:slide coordsize="720,540"
+ colors="#003399,#ffffff,#000514,#e5e5ff,#0099cc,#a886e0,#ffcc00,#ffffcc"
+ masterhref="master23.xml">
+ <p:shaperange href="master23.xml#_x0000_s39937"/><![if !ppt]><p:shaperange
+  href="master23.xml#_x0000_s39938"/><p:shaperange
+  href="master23.xml#_x0000_s39940"/><![if !vml]><img border=0
+ v:shapes="_x0000_s39940,_x0000_s39942,_x0000_s39943,_x0000_s39944,_x0000_s39945,_x0000_s39946,_x0000_s39947,_x0000_s39948"
+ src="master23_image002.gif" style='position:absolute;top:0%;left:0%;
+ width:100.18%;height:100.25%'><![endif]><p:shaperange
+  href="master23.xml#_x0000_s39950"/><![endif]><p:shaperange
+  href="master23.xml#_x0000_m39949"/><v:shape id="_x0000_s50178" type="#_x0000_m39949"
+  style='position:absolute;left:36pt;top:21.625pt;width:9in;height:90pt'
+  o:userdrawn="f">
+  <v:fill o:detectmouseclick="f"/>
+  <v:stroke o:forcedash="f"/>
+  <o:lock v:ext="edit" text="f"/>
+  <p:placeholder type="title"/></v:shape><p:shaperange
+  href="master23.xml#_x0000_m39951"/><v:shape id="_x0000_s50179" type="#_x0000_m39951"
+  style='position:absolute;left:36pt;top:126pt;width:9in;height:356.375pt'
+  o:userdrawn="f">
+  <v:fill o:detectmouseclick="f"/>
+  <v:stroke o:forcedash="f"/>
+  <o:lock v:ext="edit" text="f"/>
+  <p:placeholder type="body" position="1"/></v:shape>
+ <div v:shape="_x0000_s50178" class=T style='position:absolute;top:8.0%;
+ left:5.99%;width:88.2%;height:9.5%'>Doing It in Haskell</div>
+ <div v:shape="_x0000_s50179">
+ <div class=B style='mso-line-spacing:"90 20 0";position:absolute;top:23.75%;
+ left:5.99%;width:88.2%;height:7.0%'><span style='position:absolute;top:0%;
+ left:4.24%;width:95.75%;height:100.0%'><span style='mso-special-format:bullet;
+ color:#FFCC00;mso-color-index:6;position:absolute;left:-4.43%;top:.39em;
+ font-family:Wingdings;font-size:70%'>n</span><span lang=EN-GB>Playing the “WWW
+ Trick”:&#13;</span></span></div>
+ <div class=B1 style='mso-line-spacing:"90 20 0"'><span style='position:absolute;
+ top:31.5%;left:14.04%;width:93.07%;height:6.0%'><span style='mso-special-format:
+ bullet;color:#A886E0;mso-color-index:5;position:absolute;left:-3.21%;
+ top:.39em;font-family:Wingdings;font-size:70%'>n</span><span lang=EN-GB>Take
+ an existing technology, so far used mainly in a </span></span><span
+ style='position:absolute;top:37.0%;left:14.04%;width:79.96%;height:6.0%'><span
+ lang=EN-GB>local environment.&#13;</span></span></div>
+ <div class=B1 style='mso-line-spacing:"90 20 0";position:absolute;top:44.0%;
+ left:11.04%;width:83.14%;height:6.0%'><span style='position:absolute;
+ top:0%;left:3.6%;width:96.17%;height:100.0%'><span style='mso-special-format:
+ bullet;color:#A886E0;mso-color-index:5;position:absolute;left:-3.74%;
+ top:.39em;font-family:Wingdings;font-size:70%'>n</span><span lang=EN-GB>Simplify
+ it to the bone.&#13;</span></span></div>
+ <div class=B1 style='mso-line-spacing:"90 20 0";position:absolute;top:50.74%;
+ left:11.04%;width:88.95%;height:6.0%'><span style='position:absolute;
+ top:0%;left:3.36%;width:96.42%;height:100.0%'><span style='mso-special-format:
+ bullet;color:#A886E0;mso-color-index:5;position:absolute;left:-3.49%;
+ top:.39em;font-family:Wingdings;font-size:70%'>n</span><span lang=EN-GB>Extend
+ it to work in a distributed environment.</span><span lang=EN-GB
+ style='font-size:71%;display:none'>&#13;</span></span></div>
+ <div class=B style='mso-line-spacing:"90 20 0";position:absolute;top:57.49%;
+ left:5.99%;width:88.2%;height:4.75%'><span style='mso-special-format:nobullet;
+ display:none;color:#FFCC00;mso-color-index:6;font-family:Wingdings;font-size:
+ 70%'>n</span><span lang=EN-GB style='font-size:69%;display:none'><b>&#13;</b></span></div>
+ <div class=B style='mso-line-spacing:"90 20 0"'><span style='position:absolute;
+ top:62.74%;left:5.99%;width:95.69%;height:4.75%'><span style='mso-special-format:
+ nobullet;display:none;color:#FFCC00;mso-color-index:6;font-family:Wingdings;
+ font-size:70%'>n</span><span lang=EN-GB style='font-size:69%'><b>WWW =
+ globalise (simplify hyperText) globalNamingSystem </b></span></span><span
+ style='position:absolute;top:67.25%;left:9.73%;width:84.45%;height:4.75%'><span
+ lang=EN-GB style='font-size:69%'><b>netProtocol&#13;</b></span></span></div>
+ <div class=B style='mso-line-spacing:"90 20 0";position:absolute;top:72.5%;
+ left:5.99%;width:88.2%;height:4.75%'><span style='mso-special-format:nobullet;
+ display:none;color:#FFCC00;mso-color-index:6;font-family:Wingdings;font-size:
+ 70%'>n</span><span lang=EN-GB style='font-size:69%;display:none'><b>&#13;</b></span></div>
+ <div class=B style='mso-line-spacing:"90 20 0"'><span style='position:absolute;
+ top:78.0%;left:5.99%;width:89.88%;height:4.75%'><span style='mso-special-format:
+ nobullet;display:none;color:#FFCC00;mso-color-index:6;font-family:Wingdings;
+ font-size:70%'>n</span><span lang=EN-GB style='font-size:69%'><b>Quid</b></span><span
+ lang=EN-GB style='font-size:46%;position:relative;top:-.45em;mso-text-raise:
+ 30%'><b>2</b></span><span lang=EN-GB style='font-size:69%'><b><span
+ style='mso-spacerun:yes'> </span>= globalise (simplify haskell)
+ globalNamingSystem </b></span></span><span style='position:absolute;
+ top:82.25%;left:9.73%;width:84.45%;height:4.75%'><span lang=EN-GB
+ style='font-size:69%'><b>netProtocol</b></span><span style='font-size:69%;
+ mso-special-format:lastCR;display:none'><b>&#13;</b></span></span></div>
+ </div>
+ <v:shapetype id="_x0000_t62" coordsize="21600,21600" o:spt="62" adj="1350,25920"
+  path="m3600,qx,3600l0@8@12@24,0@9,,18000qy3600,21600l@6,21600@15@27@7,21600,18000,21600qx21600,18000l21600@9@18@30,21600@8,21600,3600qy18000,l@7,0@21@33@6,xe">
+  <v:stroke joinstyle="miter"/>
+  <v:formulas>
+   <v:f eqn="sum 10800 0 #0"/>
+   <v:f eqn="sum 10800 0 #1"/>
+   <v:f eqn="sum #0 0 #1"/>
+   <v:f eqn="sum @0 @1 0"/>
+   <v:f eqn="sum 21600 0 #0"/>
+   <v:f eqn="sum 21600 0 #1"/>
+   <v:f eqn="if @0 3600 12600"/>
+   <v:f eqn="if @0 9000 18000"/>
+   <v:f eqn="if @1 3600 12600"/>
+   <v:f eqn="if @1 9000 18000"/>
+   <v:f eqn="if @2 0 #0"/>
+   <v:f eqn="if @3 @10 0"/>
+   <v:f eqn="if #0 0 @11"/>
+   <v:f eqn="if @2 @6 #0"/>
+   <v:f eqn="if @3 @6 @13"/>
+   <v:f eqn="if @5 @6 @14"/>
+   <v:f eqn="if @2 #0 21600"/>
+   <v:f eqn="if @3 21600 @16"/>
+   <v:f eqn="if @4 21600 @17"/>
+   <v:f eqn="if @2 #0 @6"/>
+   <v:f eqn="if @3 @19 @6"/>
+   <v:f eqn="if #1 @6 @20"/>
+   <v:f eqn="if @2 @8 #1"/>
+   <v:f eqn="if @3 @22 @8"/>
+   <v:f eqn="if #0 @8 @23"/>
+   <v:f eqn="if @2 21600 #1"/>
+   <v:f eqn="if @3 21600 @25"/>
+   <v:f eqn="if @5 21600 @26"/>
+   <v:f eqn="if @2 #1 @8"/>
+   <v:f eqn="if @3 @8 @28"/>
+   <v:f eqn="if @4 @8 @29"/>
+   <v:f eqn="if @2 #1 0"/>
+   <v:f eqn="if @3 @31 0"/>
+   <v:f eqn="if #1 0 @32"/>
+   <v:f eqn="val #0"/>
+   <v:f eqn="val #1"/>
+  </v:formulas>
+  <v:path o:connecttype="custom" o:connectlocs="10800,0;0,10800;10800,21600;21600,10800;@34,@35"
+   textboxrect="791,791,20809,20809"/>
+  <v:handles>
+   <v:h position="#0,#1"/>
+  </v:handles>
+ </v:shapetype><v:shape id="_x0000_s50180" type="#_x0000_t62" style='position:absolute;
+  left:189.875pt;top:366.375pt;width:294.75pt;height:51.125pt' adj="-6348,25455"
+  fillcolor="#09c [4]" strokecolor="white [1]">
+  <v:fill color2="#039 [0]"/>
+  <v:shadow color="#000514 [2]"/>
+  <p:animation number="2" delay="0" type="object" effect="cut"
+   direction="noBlack" flag="17408"/></v:shape><![if !vml]><img border=0
+ v:shapes="_x0000_s50180" src="slide0014_image005.gif" style='position:absolute;
+ top:67.75%;left:13.48%;width:54.11%;height:12.0%'><![endif]>
+ <div id="_x0000_s50180_AllText" v:shape="_x0000_s50180" class=O
+ style='position:absolute;top:69.0%;left:26.02%;width:41.76%;height:8.0%;
+ white-space:nowrap'>
+ <div style='text-align:center;mso-char-wrap:0;mso-kinsoku-overflow:0;
+ position:absolute;top:0%;left:0%;width:100.0%;height:50.0%'><span lang=EN-GB
+ style='font-family:Garamond'>QuidQuid is Latin for<span
+ style='mso-spacerun:yes'>  </span>“Whatever”.&#13;</span></div>
+ <div style='text-align:center;mso-char-wrap:0;mso-kinsoku-overflow:0;
+ position:absolute;top:50.0%;left:6.72%;width:86.54%;height:50.0%'><span
+ lang=EN-GB style='font-family:Garamond'>Ideas for a better name?</span><span
+ style='font-family:Garamond;mso-special-format:lastCR;display:none'>&#13;</span></div>
+ </div>
+</p:slide></div>
+
+<p:animation number="-93081237"/><oa:par id="TimeNode0" dur="indefinite"
+ restart="never" p:nodeType="timingRoot">
+ <oa:seq id="TimeNode1" dur="indefinite" prev="document.onpptprev"
+  next="document.onpptnext" concurrent="enabled" nextAction="seek"
+  p:nodeType="mainSeq">
+  <oa:par id="TimeNode2" begin="indefinite" fill="hold">
+   <oa:par id="TimeNode3" begin="0.0" fill="hold">
+    <oa:par id="TimeNode4" o:presetID="ppt_1" o:presetClass="entrance"
+     o:presetSubType="0x0" begin="0.0" fill="hold" o:groupID="0"
+     p:nodeType="clickEffect">
+     <oa:set id="TimeNode5" begin="0.0" dur="0.001" fill="hold"
+      targetElement="_x0000_s50180" attributeName="style.visibility"
+      to="visible"/>
+    </oa:par>
+    <![if !ppt]><oa:par id="TimeNode6" o:presetID="ppt_1" o:presetClass="entrance"
+     o:presetSubType="0x0" begin="0.0" fill="hold" p:nodeType="withEffect">
+     <oa:set id="TimeNode7" begin="0.0" dur="0.001" fill="hold"
+      targetElement="_x0000_s50180_AllText" attributeName="style.visibility"
+      to="visible"/>
+    </oa:par>
+    <![endif]></oa:par>
+  </oa:par>
+ </oa:seq>
+</oa:par>
+<![if ppt]>
+<oa:buildParagraph targetElement="_x0000_s50180" groupID="0" build="asAWhole"
+ buildLevel="1" alsoAnimate="background" reverse="false" buildAdvance="onclick"
+ userSetAnimBgd="false"/>
+<![endif]>
+</body>
+
+</html>

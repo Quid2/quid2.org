@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://openajax.org/metadata" 
+  id="http://openajax.org/metadata/spec/samples/widgets/api/RandomNumberSubscriber"
+  name="RandomNumberSubscriber" version='1.0' spec='1.0'
+  jsClass="OpenAjaxSamples.RandomNumberSubscriber">
+
+  <!-- The widget's class is defined inline within this <require> element. -->
+  <require type="javascript"><![CDATA[
+
+    // If OpenAjaxSamples object doesn't exist, create it.
+    if (typeof OpenAjaxSamples== "undefined") OpenAjaxSamples= {};
+
+    // Provide a null constructor function for the class identified by 'jsClass' attribute
+    OpenAjaxSamples.RandomNumberSubscriber = function() {}
+
+    // Provide an onLoad callback function on the widget instance object
+    // The onLoad function is invoked once the widget is loaded and ready to render
+    OpenAjaxSamples.RandomNumberSubscriber.prototype.onLoad = function() {
+
+      // Subscribe to topic "OpenAjaxSamples.RandomNumber"
+      this.OpenAjax.hub.subscribe("OpenAjaxSamples.RandomNumber", function(topic, data) {
+        // This is the callback function that is invoked whenever an
+        // "OpenAjaxSamples.RandomNumber" message is received.
+        if (typeof data === "number") {
+          // Update the presentation to show the random number.
+          document.getElementById("__WID__RandomNumber").innerHTML = data;
+        }
+      });
+    }
+  ]]></require>
+    
+  <content><![CDATA[
+    <div style="border:2px solid; background-color:lightyellow; padding-left:1em;">
+      <h4>Subscriber widget</h4>
+      <p>Random number received was: <span id="__WID__RandomNumber">(nothing received yet)</span></p>
+    </div>
+  ]]></content>
+
+  <!-- This widget subscribes to topic "OpenAjaxSamples.RandomNumber". -->
+  <topic name="OpenAjaxSamples.RandomNumber" type="Number" subscribe="true"/>
+</widget>
